@@ -28,7 +28,27 @@ void GuiBasic::LoadFile(const QString &filename)
 }
 void GuiBasic::on_btnLoadCode_clicked()
 {
-    QString filename = QFileDialog::getOpenFileName(this);
-    if (!filename.isEmpty())
-        LoadFile(filename);
+    QString command = ui -> cmdLineEdit -> text();
+    QString number = command.split(' ').at(0);
+    QTextCursor cursor = ui -> codedisplay -> textCursor();
+    cursor.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor, 1);
+    do {
+        cursor.select(QTextCursor::WordUnderCursor);
+        if (cursor.selectedText() == number){
+            cursor.select(QTextCursor::LineUnderCursor);
+            cursor.selectedText().clear();
+            cursor.insertText(command);
+            ui -> cmdLineEdit -> clear();
+            return;
+        }
+    } while(cursor.movePosition(QTextCursor::Down, QTextCursor::MoveAnchor, 1));
+    ui -> codedisplay -> appendPlainText(command);
+    ui -> cmdLineEdit -> clear();
+}
+
+void GuiBasic::on_btnClearCode_clicked()
+{
+    ui -> codedisplay -> clear();
+    ui -> codebrowser -> clear();
+    ui -> plainTextEdit_3 -> clear();
 }

@@ -19,6 +19,8 @@ public:
 private slots:
     void on_btnLoadCode_clicked();
 
+    void on_btnClearCode_clicked();
+
 private:
     Ui::GuiBasic *ui;
     void LoadFile(const QString &filename);
