@@ -9,11 +9,23 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    evalstate.cpp \
+    exp.cpp \
     main.cpp \
-    guibasic.cpp
+    guibasic.cpp \
+    parser.cpp \
+    program.cpp \
+    statement.cpp \
+    tokenizer.cpp
 
 HEADERS += \
-    guibasic.h
+    evalstate.h \
+    exp.h \
+    guibasic.h \
+    parser.h \
+    program.h \
+    statement.h \
+    tokenizer.h
 
 FORMS += \
     guibasic.ui
