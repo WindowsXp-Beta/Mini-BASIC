@@ -4,6 +4,13 @@
 #include <QMainWindow>
 
 #include <QtWidgets>
+#include "evalstate.h"
+//#include "exp.h"
+//#include "parser.h"
+//#include "program.h"
+//#include "statement.h"
+
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class GuiBasic; }
 QT_END_NAMESPACE
@@ -15,7 +22,8 @@ class GuiBasic : public QMainWindow
 public:
     GuiBasic(QWidget *parent = nullptr);
     ~GuiBasic();
-
+    void print(QString &content);//PRINT语句需要调用ui，故这里做个接口
+    static GuiBasic * ui_handle;
 private slots:
     void on_btnLoadCode_clicked();
 
@@ -25,6 +33,8 @@ private slots:
 
 private:
     Ui::GuiBasic *ui;
+    EvalState s;
+
     void LoadFile(const QString &filename);  //按下载入代码按钮加载文件函数
 
     bool isHaveLineNumber(QString &command);//判断是否存在行号
@@ -37,24 +47,5 @@ private:
     bool isOnlyNumber(QString &command);  //判断是否仅有行号
 
 
-
-    /******command execute******/
-    void RemStmt(QString &command);
-
-    void LetStmt(QString &command);
-
-    void PrintStmt(QString &command);
-
-    void InputStmt(QString &command);
-
-    void GotoStmt(QString &command);
-
-    void IfStmt(QString &command);
-
-    void EndStmt(QString &command);
-
-    void calcutate(QString &command);
-
-    void error_handler(int type);
 };
 #endif // GUIBASIC_H

@@ -1,11 +1,14 @@
 #include "guibasic.h"
 #include "ui_guibasic.h"
-
+#include "statement.h"
+#include "parser.h"
+GuiBasic* GuiBasic::ui_handle = nullptr;
 GuiBasic::GuiBasic(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::GuiBasic)
 {
     ui->setupUi(this);
+    ui_handle = this;
 }
 
 GuiBasic::~GuiBasic()
@@ -42,11 +45,11 @@ void GuiBasic::on_btnClearCode_clicked()
     ui -> syntax_tree -> clear();
 }
 
-void GuiBasic::on_cmdLineEdit_returnPressed()
+void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
 {
     QString command = ui -> cmdLineEdit -> text();
     if (isHaveLineNumber(command)) { // 如果有行号，则执行插入操作
-        if (isNumberExist(command)) return;//判断是否行号出现过
+        if (isNumberExist(command)) return;//判断是否行号出现过，如果出现过，直接在函数中处理
         else {
             ui -> codedisplay -> appendPlainText(command);//直接在最后插入
             ui -> cmdLineEdit -> clear();
@@ -55,13 +58,9 @@ void GuiBasic::on_cmdLineEdit_returnPressed()
     }
 
     else { //如果没有行号
-        QString fun = command.split(' ').at(0);
-/*
-        if (fun == "LET") LetStmt(command);//==会发生类型转换，将const char* 转换为 QString
-        else if (fun == "PRINT") PrintStmt(command);
-        else if (fun == "INPUT") InputStmt(command);
-        else */
-        error_handler(1);
+        statement *stmt = parsedirect(command);
+        stmt->execute(s);
+        ui -> cmdLineEdit -> clear();
     }
 }
 
@@ -114,20 +113,7 @@ bool GuiBasic::isNumberExist(QString &command)
 
     return false;
 }
-/*
-void GuiBasic::PrintStmt(QString &command)
-{
 
+void GuiBasic::print(QString &content){
+    ui -> codebrowser -> appendPlainText(content);
 }
-*/
-
-void GuiBasic::error_handler(int type)
-{
-    ui -> codebrowser -> appendPlainText("Unvalid syntax !");
-}
-/*
-int GuiBasic::calcutate(QString &command)
-{
-
-}
-*/
