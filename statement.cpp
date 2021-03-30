@@ -70,6 +70,7 @@ INPUTstatement::~INPUTstatement()
 
 void INPUTstatement::execute(EvalState & state)
 {
+    //GuiBasic::ui_handle -> cmdLineEdit.
     //int res = input_int();
     //state.setValue(var, res);
 }

@@ -34,6 +34,8 @@ public:
     virtual ~compoundexp();
     expression *getLHS();
     expression *getRHS();
+    QString getop();
+    virtual int eval(EvalState &state);
 private:
     QString op;
     expression *lhs, *rhs;

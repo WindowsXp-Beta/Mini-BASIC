@@ -48,15 +48,18 @@ void GuiBasic::on_btnClearCode_clicked()
 void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
 {
     QString command = ui -> cmdLineEdit -> text();
-    if (isHaveLineNumber(command)) { // 如果有行号，则执行插入操作
+    QStringList cmd_list = command.split(' ', Qt::SkipEmptyParts);
+    if (cmd_list.at(0) == '?') {
+        int var = cmd_list.at(2).toInt();
+        emit input_num(var);
+    }
+    else if (isHaveLineNumber(command)) { // 如果有行号，则执行插入操作
         if (isNumberExist(command)) return;//判断是否行号出现过，如果出现过，直接在函数中处理
         else {
             ui -> codedisplay -> appendPlainText(command);//直接在最后插入
             ui -> cmdLineEdit -> clear();
-            return;
         }
     }
-
     else { //如果没有行号
         statement *stmt = parsedirect(command);
         stmt->execute(s);
@@ -76,7 +79,7 @@ bool GuiBasic::isHaveLineNumber(QString &command)
 
 bool GuiBasic::isOnlyNumber(QString &command)
 {
-    if (command.split(' ' , Qt::SkipEmptyParts).size() == 1)//skipemptyparts 可以忽略多余的空格
+    if (command.split(' ', Qt::SkipEmptyParts).size() == 1)//skipemptyparts 可以忽略多余的空格
         return true;
     else return false;
 }
@@ -114,6 +117,24 @@ bool GuiBasic::isNumberExist(QString &command)
     return false;
 }
 
+/**提供给其他文件的接口**/
+//提供给PRINT
 void GuiBasic::print(QString &content){
     ui -> codebrowser -> appendPlainText(content);
 }
+/*
+//提供给INPUT
+int GuiBasic::input(int num){
+    ui -> cmdLineEdit -> text() = '?';
+    emit get_input();
+    return num;
+}
+
+int GuiBasic::get_num(int num){
+
+}
+void GuiBasic::on_btnRunCode_clicked()
+{
+
+}
+*/

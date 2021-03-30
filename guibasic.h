@@ -17,19 +17,28 @@ QT_END_NAMESPACE
 
 class GuiBasic : public QMainWindow
 {
-    Q_OBJECT
+    Q_OBJECT //这是一个宏
 
 public:
     GuiBasic(QWidget *parent = nullptr);
     ~GuiBasic();
-    void print(QString &content);//PRINT语句需要调用ui，故这里做个接口
     static GuiBasic * ui_handle;
+    /**提供给其他文件的Gui接口**/
+    void print(QString &);//for PRINT
+    int input(int);//for INPUT
+
+signals:
+    void get_input();
+    void input_num(int num);
+
 private slots:
     void on_btnLoadCode_clicked();
 
     void on_btnClearCode_clicked();
 
     void on_cmdLineEdit_returnPressed();
+
+    //void on_btnRunCode_clicked();
 
 private:
     Ui::GuiBasic *ui;

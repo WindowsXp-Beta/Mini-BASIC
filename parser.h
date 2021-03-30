@@ -11,14 +11,17 @@ statement *parsedirect(QString &line);
 
 statement *parsestatement(QString &line);
 
-LETstatement *parseLET(QString &line);
+LETstatement *parseLET(QStringList &line_list);
 
-PRINTstatement *parsePRINT(QString &line);
+PRINTstatement *parsePRINT(QStringList &line_list);
 
-//INPUTstatement *parseINPUT(QString &line);
+INPUTstatement *parseINPUT(QStringList &line_list);
 
-//REMstatement *parseREM(QString &line);
+REMstatement *parseREM(QString &line);
 
 expression *parseEXP(QString &line);
 
+expression *readE(QStringList &line_list, int &index, int prec = 0);
+
+expression *readT(QStringList &line_list, int &index);
 #endif // PARSER_H
