@@ -48,6 +48,8 @@
 点完run
 逐行parse 并用一个`QMap<int line_number, statement>`保存程序
 
+INPUT逻辑：cmdlineedit里打印`?`=> 发信号让RUN的程序停下来 => on_return_pressed => 通过信号把读到的参数传出来 => INPUT::execute接受这个信号设置参数 => 发信号让程序继续
+
 ## Qt philosophy
 
 ### 信号-槽机制
@@ -63,19 +65,45 @@
 
 > 如果信号的参数有默认值，那么传递给`SIGNAL()`宏的参数个数不能少于`SLOT()`宏的参数个数。
 >
-> **信号槽要求信号和槽的参数一致，所谓一致，是参数类型一致。如果不一致，允许的情况是，****槽函数的参数可以比信号的少****，即便如此，槽函数存在的那些****参数的顺序也必须和信号的前面几个一致起来****。这是因为，你可以在槽函数中选择忽略信号传来的数据（也就是槽函数的参数比信号的少），但是不能说信号根本没有这个数据，你就要在槽函数中使用（就是槽函数的参数比信号的多，这是不允许的）。**
-
-> **Qt 5 中，任何成员函数、static 函数、全局函数和 Lambda 表达式都可以作为槽函数。**与信号函数不同，槽函数必须自己完成实现代码。槽函数就是普通的成员函数，因此作为成员函数，也会受到 public、private 等访问控制符的影响。（如果信号是 private 的，这个信号就不能在类的外面连接，也就没有任何意义。）
+> 信号槽要求信号和槽的参数一致，所谓一致，是参数类型一致。如果不一致，允许的情况是，槽函数的参数可以比信号的少，即便如此，槽函数存在的那些 ，参数的顺序也必须和信号的前面几个一致起来。这是因为，你可以在槽函数中选择忽略信号传来的数据（也就是槽函数的参数比信号的少），但是不能说信号根本没有这个数据，你就要在槽函数中使用（就是槽函数的参数比信号的多，这是不允许的）。
 
 - **发送者和接收者都需要是QObject的子类（当然，槽函数是全局函数、Lambda 表达式等无需接收者的时候除外）；**
+
+  > 这意味着你自己写的类必须继承QObject
 
 - **使用 signals 标记信号函数，信号是一个函数声明，返回 void，不需要实现函数代码；**
 
 - **槽函数是普通的成员函数，作为成员函数，会受到 public、private、protected 的影响；**
+
+  > 如果信号是 private 的，这个信号就不能在类的外面连接，也就没有任何意义。
 
 - **使用 emit 在恰当的位置发送信号；**
 
 - **使用QObject::connect()函数连接信号和槽。**
 
 - **任何成员函数、static 函数、全局函数和 Lambda 表达式都可以作为槽函数**
+
+### 事件循环
+
+类：`QEventLoop`
+
+方法：`exec()`来启动一个事件循环，在这个循环期间，可以调用`exit()`来强制使`exct()`返回。
+
+**子层事件循环具有父层事件循环的所有功能，所以当在主线程中启动各种exec()（比如QEventLoop::exec()）时，虽然会打断main函数中的QApplication::exec()，但是Gui界面还是可以正常响应，不会出现卡住的现象。这与用while来循环是不一样的。**
+
+使用信号槽机制
+
+### 自己写的类继承 QObject
+
+Golden Rules
+
+1. Make sure the `Q_OBJECT` macro is present in the definition of all `QObject`-derived classes.
+
+2. Make sure you declare your `QObject`-derived classes in your header files **only**.
+
+3. Make sure all of your header files are listed in your .pro file in the `HEADERS=` list.
+
+4. Run `qmake` every time you add `Q_OBJECT` to one of your classes or modify your `.pro` file.
+
+   > In Qt creator, run qmake by `right click` the project then select `run qmake`
 

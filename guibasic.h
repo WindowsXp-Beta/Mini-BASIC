@@ -23,12 +23,12 @@ public:
     GuiBasic(QWidget *parent = nullptr);
     ~GuiBasic();
     static GuiBasic * ui_handle;
-    /**提供给其他文件的Gui接口**/
+    /**Gui提供给其他文件的接口**/
     void print(QString &);//for PRINT
-    int input(int);//for INPUT
+    void set_ques_mark();
 
 signals:
-    void get_input();
+    void stop_prog_input();
     void input_num(int num);
 
 private slots:

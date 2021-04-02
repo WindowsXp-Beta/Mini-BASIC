@@ -2,7 +2,9 @@
 #include "ui_guibasic.h"
 #include "statement.h"
 #include "parser.h"
+
 GuiBasic* GuiBasic::ui_handle = nullptr;
+
 GuiBasic::GuiBasic(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::GuiBasic)
@@ -119,22 +121,17 @@ bool GuiBasic::isNumberExist(QString &command)
 
 /**提供给其他文件的接口**/
 //提供给PRINT
-void GuiBasic::print(QString &content){
+void GuiBasic::print(QString &content) {
     ui -> codebrowser -> appendPlainText(content);
 }
-/*
+
 //提供给INPUT
-int GuiBasic::input(int num){
+void GuiBasic::set_ques_mark(){
     ui -> cmdLineEdit -> text() = '?';
-    emit get_input();
-    return num;
+    emit stop_prog_input();
 }
+//void GuiBasic::on_btnRunCode_clicked()
+//{
 
-int GuiBasic::get_num(int num){
+//}
 
-}
-void GuiBasic::on_btnRunCode_clicked()
-{
-
-}
-*/

@@ -1,8 +1,8 @@
-
 #include "statement.h"
-#include "guibasic.h"
 #include "ui_guibasic.h"
+#include <QEventLoop>
 #include <cstdio>
+
 statement :: statement(){
     /* Empty */
 }
@@ -61,18 +61,26 @@ void ENDstatement::execute(EvalState & state)
     state.setPC(EvalState::HALT);
 }
 
-INPUTstatement::INPUTstatement(QString init_name):var(init_name) {}
+INPUTstatement::INPUTstatement(QString init_name, int num):var(init_name), num(num) {}
 
 INPUTstatement::~INPUTstatement()
 {
     /* Empty */
 }
 
+void INPUTstatement::get_input(int var)
+{
+    num = var;
+}
+
 void INPUTstatement::execute(EvalState & state)
 {
-    //GuiBasic::ui_handle -> cmdLineEdit.
-    //int res = input_int();
-    //state.setValue(var, res);
+    QEventLoop loop;
+    connect(GuiBasic::ui_handle, SIGNAL(input_num(int)), this, SLOT(get_input(int)));
+    connect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), &loop, SLOT(exec()));
+    connect(GuiBasic::ui_handle, SIGNAL(input_num()), &loop, SLOT(quit()));
+    GuiBasic::ui_handle -> set_ques_mark();
+    state.setValue(var, num);
 }
 
 /*

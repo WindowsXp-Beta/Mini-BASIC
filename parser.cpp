@@ -100,7 +100,6 @@ PRINTstatement *parsePRINT(QStringList &line_list){
     if (!isNumber) {//if dont have a line number
         index_exp = index_exp - 1;
     }
-    QString exp_str = line_list.at(index_exp);
     expression *exp = parseEXP(line_list, index_exp);
     PRINTstatement *new_print_stat = new PRINTstatement(exp);
     return new_print_stat;
