@@ -3,11 +3,10 @@
 
 #include <QString>
 #include <QObject>
-#include "guibasic.h"
-//#include "evalstate.h"
 #include "exp.h"
 
 class statement : public QObject
+//因为statement要使用slot signal机制，所以需继承QObject
 {
     Q_OBJECT
 public:
@@ -42,13 +41,15 @@ public:
 class INPUTstatement : public statement
 {
     Q_OBJECT
+
 public:
     INPUTstatement(QString init_name, int num = 0);
     virtual ~INPUTstatement();
     virtual void execute(EvalState & state);
+
 public slots:
-    void begin_loop();
-    void get_input(int var);//handle the input_num signal
+    void begin_loop();//解决了QeventLoop的exec不是slot的问题，将exec包装
+    void get_input(int var);//设置INPUT的num
 private:
     // INPUT var
         QString var;

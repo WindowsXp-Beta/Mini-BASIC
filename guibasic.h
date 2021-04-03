@@ -4,11 +4,7 @@
 #include <QMainWindow>
 
 #include <QtWidgets>
-#include "evalstate.h"
-//#include "exp.h"
-//#include "parser.h"
-//#include "program.h"
-//#include "statement.h"
+#include "program.h"
 
 
 QT_BEGIN_NAMESPACE
@@ -25,7 +21,8 @@ public:
     static GuiBasic * ui_handle;
     /**Gui提供给其他文件的接口**/
     void print(QString &);//for PRINT
-    void set_ques_mark();
+    void set_ques_mark();//for INPUT
+    void show_line(const QString &);//for program.cpp
 
 signals:
     void stop_prog_input();
@@ -43,12 +40,13 @@ private slots:
 private:
     Ui::GuiBasic *ui;
     EvalState s;
+    Program pro;
 
     void LoadFile(const QString &filename);  //按下载入代码按钮加载文件函数
 
-    bool isHaveLineNumber(QString &command);//判断是否存在行号
+    bool isHaveLineNumber(QStringList &cmd_list);//判断是否存在行号
 
-    bool isNumberExist(QString &command);
+    bool isNumberExist(QStringList &cmd_list);
     //检测console中输入命令的行号是否已经出现过。返回行首的Cursor
     //上面是最初想法，后来不知道怎么返回一个空对象
     //改成如果找到就完成插入操作并返回true

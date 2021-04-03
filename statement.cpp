@@ -1,5 +1,5 @@
 #include "statement.h"
-#include "ui_guibasic.h"
+#include "guibasic.h"
 #include <QEventLoop>
 #include <cstdio>
 #include <QDebug>

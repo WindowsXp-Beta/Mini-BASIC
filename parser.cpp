@@ -67,14 +67,19 @@ expression *parseEXP(QStringList &line_list, int index){
 }
 
 
-statement *parsedirect(QString &line){
-    QStringList cmd_list = line.split(' ', Qt::SkipEmptyParts);
+statement *parsedirect(QStringList &cmd_list){
     QString fun = cmd_list.at(0);
     if (fun == "LET") return parseLET(cmd_list);
     if (fun == "INPUT") return parseINPUT(cmd_list);
     if (fun == "PRINT") return parsePRINT(cmd_list);
 }
 
+statement *parsestatement(QStringList &cmd_list){
+    QString fun = cmd_list.at(1);
+    if (fun == "LET") return parseLET(cmd_list);
+    if (fun == "INPUT") return parseINPUT(cmd_list);
+    if (fun == "PRINT") return parsePRINT(cmd_list);
+}
 
 //(num) LET var = exp
 LETstatement *parseLET(QStringList &line_list){

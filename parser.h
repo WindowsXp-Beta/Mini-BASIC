@@ -7,9 +7,9 @@
 #include "statement.h"
 
 //直接执行的语句
-statement *parsedirect(QString &line);
+statement *parsedirect(QStringList &cmd_list);
 
-statement *parsestatement(QString &line);
+statement *parsestatement(QStringList &cmd_list);
 
 LETstatement *parseLET(QStringList &line_list);
 
