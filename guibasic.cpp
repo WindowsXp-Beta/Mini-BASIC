@@ -52,8 +52,10 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
     QString command = ui -> cmdLineEdit -> text();
     QStringList cmd_list = command.split(' ', Qt::SkipEmptyParts);
     if (cmd_list.at(0) == '?') {
-        int var = cmd_list.at(2).toInt();
+        int var = cmd_list.at(1).toInt();
+        printf("%d\n", var);
         emit input_num(var);
+        ui -> cmdLineEdit -> clear();
     }
     else if (isHaveLineNumber(command)) { // 如果有行号，则执行插入操作
         if (isNumberExist(command)) return;//判断是否行号出现过，如果出现过，直接在函数中处理
@@ -127,7 +129,7 @@ void GuiBasic::print(QString &content) {
 
 //提供给INPUT
 void GuiBasic::set_ques_mark(){
-    ui -> cmdLineEdit -> text() = '?';
+    ui -> cmdLineEdit -> setText("?");
     emit stop_prog_input();
 }
 //void GuiBasic::on_btnRunCode_clicked()

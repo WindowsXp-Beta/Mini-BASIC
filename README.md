@@ -48,7 +48,7 @@
 点完run
 逐行parse 并用一个`QMap<int line_number, statement>`保存程序
 
-INPUT逻辑：cmdlineedit里打印`?`=> 发信号让RUN的程序停下来 => on_return_pressed => 通过信号把读到的参数传出来 => INPUT::execute接受这个信号设置参数 => 发信号让程序继续
+INPUT逻辑：execute调一个mainwindow的函数 => 这个函数在cmdlineedit里打印`?`并发信号让execute的程序停下来（进入一个qeventloop循环） => on_return_pressed => 通过信号把读到的参数传出来并且让execute退出qeventloop循环（一个信号绑两个slot） => execute接受这个信号设置参数
 
 ## Qt philosophy
 

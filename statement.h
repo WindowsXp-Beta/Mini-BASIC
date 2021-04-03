@@ -46,6 +46,8 @@ public:
     INPUTstatement(QString init_name, int num = 0);
     virtual ~INPUTstatement();
     virtual void execute(EvalState & state);
+public slots:
+    void begin_loop();
     void get_input(int var);//handle the input_num signal
 private:
     // INPUT var

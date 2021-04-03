@@ -2,6 +2,7 @@
 #include "ui_guibasic.h"
 #include <QEventLoop>
 #include <cstdio>
+#include <QDebug>
 
 statement :: statement(){
     /* Empty */
@@ -73,13 +74,22 @@ void INPUTstatement::get_input(int var)
     num = var;
 }
 
+void INPUTstatement::begin_loop()
+{
+    //qDebug()<< "begin loop\n";
+    QEventLoop loop;
+    connect(GuiBasic::ui_handle, SIGNAL(input_num(int)), &loop, SLOT(quit()));
+    loop.exec();
+    //qDebug()<< "loop ended\n";
+}
+
 void INPUTstatement::execute(EvalState & state)
 {
-    QEventLoop loop;
+    //qDebug() << "begin input\n";
     connect(GuiBasic::ui_handle, SIGNAL(input_num(int)), this, SLOT(get_input(int)));
-    connect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), &loop, SLOT(exec()));
-    connect(GuiBasic::ui_handle, SIGNAL(input_num()), &loop, SLOT(quit()));
+    connect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));
     GuiBasic::ui_handle -> set_ques_mark();
+    //qDebug() << "Get input num is" << num << '\n';
     state.setValue(var, num);
 }
 

@@ -71,7 +71,7 @@ statement *parsedirect(QString &line){
     QStringList cmd_list = line.split(' ', Qt::SkipEmptyParts);
     QString fun = cmd_list.at(0);
     if (fun == "LET") return parseLET(cmd_list);
-    //if (fun == "INPUT") return parseINPUT(line);
+    if (fun == "INPUT") return parseINPUT(cmd_list);
     if (fun == "PRINT") return parsePRINT(cmd_list);
 }
 
