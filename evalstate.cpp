@@ -5,7 +5,7 @@ EvalState::EvalState() {
 }
 
 EvalState::~EvalState() {
-   /* Empty */
+   clear();
 }
 
 void EvalState :: setValue(QString name, int value) {

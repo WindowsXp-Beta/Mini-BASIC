@@ -5,6 +5,8 @@
 #include <QObject>
 #include "exp.h"
 
+enum stateType { LET, REM, INPUT, PRINT, END, GOTO, IF};
+
 class statement : public QObject
 //因为statement要使用slot signal机制，所以需继承QObject
 {
@@ -13,6 +15,8 @@ public:
     statement();
     virtual ~statement();
     virtual void execute(EvalState &state) = 0;
+    virtual void display_tree() = 0;
+    stateType type;
 };
 
 
@@ -23,6 +27,7 @@ public:
     LETstatement(QString init_var, expression *init_exp);
     virtual ~LETstatement();
     virtual void execute(EvalState &state);
+    virtual void display_tree();
 private:
     // LET var = exp
         QString var;
@@ -33,9 +38,12 @@ class REMstatement : public statement
 {
     Q_OBJECT
 public:
-    REMstatement();
+    REMstatement(QString );
     virtual ~ REMstatement();
     virtual void execute(EvalState &state);
+    virtual void display_tree();
+private:
+    QString annotation;
 };
 
 class INPUTstatement : public statement
@@ -46,6 +54,7 @@ public:
     INPUTstatement(QString init_name, int num = 0);
     virtual ~INPUTstatement();
     virtual void execute(EvalState & state);
+    virtual void display_tree();
 
 public slots:
     void begin_loop();//解决了QeventLoop的exec不是slot的问题，将exec包装
@@ -64,6 +73,7 @@ public:
     PRINTstatement(expression * init_exp);
     virtual ~PRINTstatement();
     virtual void execute(EvalState & state);
+    virtual void display_tree();
 private:
     // PRINT exp
         expression * exp;
@@ -72,38 +82,40 @@ private:
 class ENDstatement : public statement
 {
     Q_OBJECT
-
 public:
     ENDstatement();
     virtual ~ENDstatement();
     virtual void execute(EvalState & state);
-
+    virtual void display_tree();
 };
-/*
-class Gotostatement : public statement
+
+class GOTOstatement : public statement
 {
     Q_OBJECT
 public:
-    Gotostatement(LineNumber * ln);
-    virtual ~Gotostatement();
+    GOTOstatement(int ln);
+    virtual ~GOTOstatement();
     virtual void execute(EvalState & state);
+    virtual void display_tree();
 
 private:
     //GOTO n
-        LineNumber * line_number;
+        int line_number;
 };
 
 class IFstatement : public statement
 {
     public:
-    IFstatement(expression * exp, LineNumber * ln);
+    IFstatement(int ln, QString op, expression *exp1, expression *exp2);
     virtual ~IFstatement();
     virtual void execute(EvalState & state);
-
+    virtual void display_tree();
     private:
     //IF exp1 op exp2 THEN n
-        LineNumber * line_number;
-        expression * cond;
+        int line_number;
+        QString op;
+        expression * exp1;
+        expression * exp2;
 };
-*/
+
 #endif // STATEMENT_H

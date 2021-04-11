@@ -3,7 +3,14 @@
 >
 > Created by Qt creator.
 
+## 一些不太优雅的地方
+
+> 希望能有后来人改进？体现一下开源的作用嘛
+
+2. 
+
 ## 题目解读
+
 > 若有歧义，以Basic-doc.pdf为准
 
 ### 输入
@@ -50,6 +57,28 @@
 
 INPUT逻辑：execute调一个mainwindow的函数 => 这个函数在cmdlineedit里打印`?`并发信号让execute的程序停下来（进入一个qeventloop循环） => on_return_pressed => 通过信号把读到的参数传出来并且让execute退出qeventloop循环（一个信号绑两个slot） => execute接受这个信号设置参数
 
+### 语法树
+
+你应该用中缀表示法建立一棵语法树，你不必真的画一棵树，你只需要使用缩进来展示一棵树。
+
+注意：相同层的叶子节点在缩进表示法中处于同一列。
+
+>  一些具体事例参考Basic-doc.pdf
+
+### 错误处理
+#### parse
+1. 非法指令。
+2. 变量名不能是关键字。
+3. parseExp时，exp不完整，比如少了数字，括号之类的。
+4. 行号必须处于 $[0,1000000]$ 间。
+#### execute
+expression
+1. 除0。
+2. 变量未定义。
+3. 运算符未定义。
+
+statement
+1. INPUT输入非整数。
 ## Qt philosophy
 
 ### 信号-槽机制

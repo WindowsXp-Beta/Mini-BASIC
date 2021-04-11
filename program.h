@@ -8,16 +8,14 @@
 
 class ProgramLine {
 public:
-    //ProgramLine(){}
     ProgramLine(statement * parsed_ast = nullptr, QString origin_line = "");
     ~ProgramLine();
     //excute the line
-    void execute(EvalState & state);
+    void execute(EvalState & state, const int);
     //Show the line
     void show();
 private:
-    //used smart pointer to handle the AST
-    statement* stmt;
+    std::shared_ptr<statement> stmt;//智能指针，会自动delete
     QString line;
 };
 

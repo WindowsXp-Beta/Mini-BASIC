@@ -1,15 +1,18 @@
 #ifndef EXP_H
 #define EXP_H
 
+#include "error.h"
 #include "evalstate.h"
 #include <QString>
 
 class expression
 {
 public:
-    expression();
+    expression(QString = " ");
     virtual ~expression();
     virtual int eval(EvalState & state) = 0;
+    bool isCompound;
+    QString tree_id;
 };
 
 class constantexp: public expression{

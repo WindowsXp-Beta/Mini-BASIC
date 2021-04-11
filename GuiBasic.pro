@@ -18,6 +18,7 @@ SOURCES += \
     statement.cpp
 
 HEADERS += \
+    error.h \
     evalstate.h \
     exp.h \
     guibasic.h \

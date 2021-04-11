@@ -23,10 +23,12 @@ bool is_keyword(QString id)
 int precedence(QString &op){
     if (op == '+' || op == '-') return 2;
     if (op == '*' || op == '/') return 3;
+    return 0;//if op = '=' | '>' | '<' | 'THEN' return 0
 }
 
 //line_list is QStringList;index is the begin index of expression
 expression *readT(QStringList &line_list, int &index){
+    if (index == line_list.size()) throw BasicError("THE COMPOUND EXPRESSION IS WRONG");
     bool is_num;
     QString token = line_list.at(index);
     int const_num = token.toInt(&is_num, 10);
@@ -36,11 +38,12 @@ expression *readT(QStringList &line_list, int &index){
          index++;
     }
     else if (token == '(') {
-        index++;//skip the (
+        index++;//skip the '('
         exp = readE(line_list, index);
-        index++;//skip the )
+        index++;//skip the ')'
     }
     else {
+        if (is_keyword(token)) throw BasicError("NAME OF VARIABLE CANNOT BE A KEY WORD");
         exp = new identifierexp(token);
         index++;
     }
@@ -61,7 +64,7 @@ expression *readE(QStringList &line_list, int &index, int prec){
     return exp;
 }
 
-expression *parseEXP(QStringList &line_list, int index){
+expression *parseEXP(QStringList &line_list, int &index){
     expression *exp = readE(line_list, index);
     return exp;
 }
@@ -72,6 +75,7 @@ statement *parsedirect(QStringList &cmd_list){
     if (fun == "LET") return parseLET(cmd_list);
     if (fun == "INPUT") return parseINPUT(cmd_list);
     if (fun == "PRINT") return parsePRINT(cmd_list);
+    throw BasicError("INVALID DIRECTIVE INSTRUCTION");
 }
 
 statement *parsestatement(QStringList &cmd_list){
@@ -79,6 +83,11 @@ statement *parsestatement(QStringList &cmd_list){
     if (fun == "LET") return parseLET(cmd_list);
     if (fun == "INPUT") return parseINPUT(cmd_list);
     if (fun == "PRINT") return parsePRINT(cmd_list);
+    if (fun == "GOTO") return parseGOTO(cmd_list);
+    if (fun == "IF") return parseIF(cmd_list);
+    if (fun == "REM") return parseREM(cmd_list);
+    if (fun == "END") return parseEND();
+    throw BasicError("INVALID INSTRUCTION");
 }
 
 //(num) LET var = exp
@@ -121,4 +130,42 @@ INPUTstatement *parseINPUT(QStringList &line_list){
     QString var = line_list.at(index_var);
     INPUTstatement *new_input_stat = new INPUTstatement(var);
     return new_input_stat;
+}
+
+
+//(num) REM ...
+REMstatement *parseREM(QStringList &line_list){
+    QString init_anno;
+    for (int i = 2; i < line_list.size(); i++) {
+        init_anno += (line_list[i] + " ");
+    }
+    REMstatement *new_rem_stat = new REMstatement(init_anno);
+    return new_rem_stat;
+}
+
+//num GOTO n
+GOTOstatement *parseGOTO(QStringList &cmd_list){
+    int line_num = cmd_list.at(2).toInt();
+    GOTOstatement *new_goto_stat = new GOTOstatement(line_num);
+    return new_goto_stat;
+}
+
+//num END
+ENDstatement *parseEND(){
+    ENDstatement *new_end_stat = new ENDstatement();
+    return new_end_stat;
+}
+
+//num IF exp1 op exp2 THEN n
+IFstatement *parseIF(QStringList &cmd_list) {
+    int index_exp1 = 2;
+    int index_exp2;
+    int ln;
+    expression *exp1 = parseEXP(cmd_list, index_exp1);//此时index_exp1应为op的index
+    QString op = cmd_list.at(index_exp1);
+    index_exp2 = index_exp1 + 1;
+    expression *exp2 = parseEXP(cmd_list, index_exp2);//此时index_exp2应为THEN
+    ln = cmd_list.at(index_exp2 + 1).toInt();
+    IFstatement *new_if_stat = new IFstatement(ln, op, exp1, exp2);
+    return new_if_stat;
 }

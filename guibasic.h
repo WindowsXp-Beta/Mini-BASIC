@@ -23,7 +23,8 @@ public:
     void print(QString &);//for PRINT
     void set_ques_mark();//for INPUT
     void show_line(const QString &);//for program.cpp
-
+    void syn_tree_display(QString line);//for statement's display_tree
+    void error_display(QString err_meg);
 signals:
     void stop_prog_input();
     void input_num(int num);
@@ -33,12 +34,15 @@ private slots:
 
     void on_btnClearCode_clicked();
 
-    void on_cmdLineEdit_returnPressed();
+    void on_btnRunCode_clicked();
 
-    //void on_btnRunCode_clicked();
+    void get_help();
+
+    void on_cmdLineEdit_returnPressed();
 
 private:
     Ui::GuiBasic *ui;
+    QString help_doc;
     EvalState s;
     Program pro;
 
@@ -46,13 +50,7 @@ private:
 
     bool isHaveLineNumber(QStringList &cmd_list);//判断是否存在行号
 
-    bool isNumberExist(QStringList &cmd_list);
-    //检测console中输入命令的行号是否已经出现过。返回行首的Cursor
-    //上面是最初想法，后来不知道怎么返回一个空对象
-    //改成如果找到就完成插入操作并返回true
-
-    bool isOnlyNumber(QString &command);  //判断是否仅有行号
-
+    bool lineNuminRange(int lineNum);
 
 };
 #endif // GUIBASIC_H
