@@ -5,9 +5,11 @@
 
 ## 一些不太优雅的地方
 
-> 希望能有后来人改进？体现一下开源的作用嘛
+> 给自己和后来人立个flag
+> 有空就改.jpg
+> 想起来就改.jpg
 
-2. 
+1. 使用QString的格式化函数arg，而不是一些加法之类的东西。 
 
 ## 题目解读
 
@@ -71,6 +73,8 @@ INPUT逻辑：execute调一个mainwindow的函数 => 这个函数在cmdlineedit�
 2. 变量名不能是关键字。
 3. parseExp时，exp不完整，比如少了数字，括号之类的。
 4. 行号必须处于 $[0,1000000]$ 间。
+5. IF THEN语句缺少元素。
+6. 语句元素过多。（比如画蛇添足）
 #### execute
 expression
 1. 除0。
@@ -79,6 +83,7 @@ expression
 
 statement
 1. INPUT输入非整数。
+2. GOTO 到了一个不存在的行。或者GOTO到一个非整数。
 ## Qt philosophy
 
 ### 信号-槽机制

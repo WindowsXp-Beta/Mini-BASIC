@@ -44,6 +44,7 @@ expression* compoundexp::getRHS()
 
 int compoundexp::eval(EvalState &state) {
     int lcr = lhs->eval(state);
+    if (!rhs) throw BasicError("THE COMPOUND EXPRESSION IS WRONG");
     int rcr = rhs->eval(state);
     int result = 0;
     if (op == '+'){

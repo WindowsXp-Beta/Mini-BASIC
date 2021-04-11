@@ -103,6 +103,7 @@ void Program::run(EvalState &state)
         }
         else {
             p = code.find(PC);
+            if (p == code.end()) throw BasicError("GOTO AN INVALID LINE");
         }
     }
 }

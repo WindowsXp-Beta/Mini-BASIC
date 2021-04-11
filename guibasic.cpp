@@ -47,6 +47,7 @@ void GuiBasic::LoadFile(const QString &filename)
     QTextStream in(&file);
     QString code_line;
     while ( !(code_line = in.readLine()).isNull() ) {
+        insertSpace(code_line);
         QStringList cmd_list = code_line.split(' ', Qt::SkipEmptyParts);
         int line_num = cmd_list.at(0).toInt();
 
@@ -90,6 +91,7 @@ void GuiBasic::on_btnRunCode_clicked()
 void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
 {
     QString command = ui -> cmdLineEdit -> text();
+    insertSpace(command);
     QStringList cmd_list = command.split(' ', Qt::SkipEmptyParts);
 
     if (cmd_list.at(0) == "RUN") {
@@ -147,6 +149,20 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
             error_display(err.get_err_meg());
         }
         if (stmt) {
+            switch (stmt -> type) {
+            case LET:{
+                syn_tree_display("LET");
+                break;
+            }
+            case PRINT:{
+                syn_tree_display("PRINT");
+                break;
+            }
+            case INPUT:{
+                syn_tree_display("INPUT");
+                break;
+            }
+            }
             try {
                 stmt->execute(s);
             }  catch (BasicError err) {
@@ -154,8 +170,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
             }
         }
         else {
-            QString tree_meg = "ERROR";
-            syn_tree_display(tree_meg);
+            syn_tree_display("ERROR");
         }
         ui -> cmdLineEdit -> clear();
         delete stmt;
@@ -175,6 +190,25 @@ bool GuiBasic::lineNuminRange(int lineNum)
     if (lineNum > 1000000 || lineNum < 0) return false;
     return true;
 }
+
+bool GuiBasic::isOp(QChar c) {
+    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' )return true;
+    return false;
+}
+
+void GuiBasic::insertSpace(QString &command, int beginIndex)
+{
+    for (int i = beginIndex; i < command.size(); i++) {
+        if (isOp(command[i])) {
+            if (i && command[i - 1] != ' ') command.insert(i, ' ');
+            if (command[i + 1] != ' ') {
+                command.insert(i + 1, ' ');
+                i++;
+            }
+        }
+    }
+}
+
 /**提供给其他文件的接口**/
 //提供给PRINT
 void GuiBasic::print(QString &content) {

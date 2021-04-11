@@ -40,6 +40,7 @@ expression *readT(QStringList &line_list, int &index){
     else if (token == '(') {
         index++;//skip the '('
         exp = readE(line_list, index);
+        if (index == line_list.size()) throw BasicError("THE BRACKETS ARE NOT CLOSED");
         index++;//skip the ')'
     }
     else {
@@ -101,7 +102,9 @@ LETstatement *parseLET(QStringList &line_list){
         index_exp = index_exp - 1;
     }
     QString var_str = line_list.at(index_var);
+    if (is_keyword(var_str)) throw BasicError("NAME OF VARIABLE CANNOT BE A KEY WORD");
     expression *exp = parseEXP(line_list, index_exp);
+    if (index_exp < line_list.size()) throw BasicError("WRONG LET STATEMENT");
     LETstatement * new_let_stat = new LETstatement(var_str, exp);
     return new_let_stat;
 }
@@ -115,6 +118,7 @@ PRINTstatement *parsePRINT(QStringList &line_list){
         index_exp = index_exp - 1;
     }
     expression *exp = parseEXP(line_list, index_exp);
+    if (index_exp < line_list.size()) throw BasicError("WRONG PRINT STATEMENT");
     PRINTstatement *new_print_stat = new PRINTstatement(exp);
     return new_print_stat;
 }
@@ -128,10 +132,10 @@ INPUTstatement *parseINPUT(QStringList &line_list){
         index_var = index_var - 1;
     }
     QString var = line_list.at(index_var);
+    if (index_var < line_list.size() - 1) throw BasicError("WRONG INPUT STATEMENT");
     INPUTstatement *new_input_stat = new INPUTstatement(var);
     return new_input_stat;
 }
-
 
 //(num) REM ...
 REMstatement *parseREM(QStringList &line_list){
@@ -145,7 +149,10 @@ REMstatement *parseREM(QStringList &line_list){
 
 //num GOTO n
 GOTOstatement *parseGOTO(QStringList &cmd_list){
-    int line_num = cmd_list.at(2).toInt();
+    bool isNum;
+    int line_num = cmd_list.at(2).toInt(&isNum);
+    if (!isNum) throw BasicError("LINE NUMBER MUST BE AN INTEGER");
+    if (cmd_list.size() > 3) throw BasicError("WRONG GOTO STATEMENT");
     GOTOstatement *new_goto_stat = new GOTOstatement(line_num);
     return new_goto_stat;
 }
@@ -162,10 +169,17 @@ IFstatement *parseIF(QStringList &cmd_list) {
     int index_exp2;
     int ln;
     expression *exp1 = parseEXP(cmd_list, index_exp1);//此时index_exp1应为op的index
+    if (index_exp1 >= cmd_list.size()) throw BasicError("INVALID IF STATEMENT");
     QString op = cmd_list.at(index_exp1);
     index_exp2 = index_exp1 + 1;
     expression *exp2 = parseEXP(cmd_list, index_exp2);//此时index_exp2应为THEN
-    ln = cmd_list.at(index_exp2 + 1).toInt();
+    if (index_exp2 >= cmd_list.size()) throw BasicError("INVALID IF STATEMENT");
+    if (cmd_list.at(index_exp2) != "THEN") throw BasicError("INVALID IF STATEMENT");
+    bool isNum;
+    index_exp2++;
+    ln = cmd_list.at(index_exp2).toInt(&isNum);
+    if (!isNum) throw BasicError("LINE NUMBER MUST BE AN INTEGER");
+    if (index_exp2 < (cmd_list.size() - 1)) throw BasicError("INVALID IF STATEMENT");
     IFstatement *new_if_stat = new IFstatement(ln, op, exp1, exp2);
     return new_if_stat;
 }
