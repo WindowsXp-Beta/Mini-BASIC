@@ -23,17 +23,31 @@ bool is_keyword(QString id)
 int precedence(QString &op){
     if (op == '+' || op == '-') return 2;
     if (op == '*' || op == '/') return 3;
+    if (op == "**") return 4;
     return 0;//if op = '=' | '>' | '<' | 'THEN' return 0
 }
 
 //line_list is QStringList;index is the begin index of expression
 expression *readT(QStringList &line_list, int &index){
-    if (index == line_list.size()) throw BasicError("THE COMPOUND EXPRESSION IS WRONG");
-    bool is_num;
+    if (index >= line_list.size()) throw BasicError("THE COMPOUND EXPRESSION IS WRONG");
+    bool is_num, is_neg = false;
     QString token = line_list.at(index);
-    int const_num = token.toInt(&is_num, 10);
+    //处理数字前面的符号
+    int const_num;
+    if (token == '+') {
+        index++;
+        token = line_list.at(index);
+        is_neg = false;
+    }
+    else if (token == '-') {
+        index++;
+        token = line_list.at(index);
+        is_neg = true;
+    }
+    const_num = token.toInt(&is_num, 10);
     expression *exp;
     if (is_num) {
+        if (is_neg) const_num = -const_num;
          exp = new constantexp(const_num);
          index++;
     }
@@ -44,6 +58,10 @@ expression *readT(QStringList &line_list, int &index){
         index++;//skip the ')'
     }
     else {
+        if (is_neg) {
+            index--;
+            token = line_list.at(index);
+        }
         if (is_keyword(token)) throw BasicError("NAME OF VARIABLE CANNOT BE A KEY WORD");
         exp = new identifierexp(token);
         index++;
@@ -57,7 +75,7 @@ expression *readE(QStringList &line_list, int &index, int prec){
         QString op = line_list.at(index);
         if (op == ')') break;
         int new_prec = precedence(op);
-        if (new_prec <= prec) break;
+        if (new_prec <= prec && !(new_prec == 4 && prec == 4)) break;
         index++;
         expression *rhc = readE(line_list, index, new_prec);
         exp = new compoundexp(op, exp, rhc);
@@ -101,6 +119,7 @@ LETstatement *parseLET(QStringList &line_list){
         index_var = index_var - 1;
         index_exp = index_exp - 1;
     }
+    if (index_var >= line_list.size()) throw BasicError("WRONG LET STATEMENT");
     QString var_str = line_list.at(index_var);
     if (is_keyword(var_str)) throw BasicError("NAME OF VARIABLE CANNOT BE A KEY WORD");
     expression *exp = parseEXP(line_list, index_exp);
@@ -131,6 +150,7 @@ INPUTstatement *parseINPUT(QStringList &line_list){
     if (!isNumber) {//if dont have a line number
         index_var = index_var - 1;
     }
+    if (index_var >= line_list.size()) throw BasicError("WRONG INPUT STATEMENT");
     QString var = line_list.at(index_var);
     if (index_var < line_list.size() - 1) throw BasicError("WRONG INPUT STATEMENT");
     INPUTstatement *new_input_stat = new INPUTstatement(var);
@@ -150,6 +170,8 @@ REMstatement *parseREM(QStringList &line_list){
 //num GOTO n
 GOTOstatement *parseGOTO(QStringList &cmd_list){
     bool isNum;
+    int index_line = 2;
+    if (index_line >= cmd_list.size()) throw BasicError("WRONG GOTO STATEMENT");
     int line_num = cmd_list.at(2).toInt(&isNum);
     if (!isNum) throw BasicError("LINE NUMBER MUST BE AN INTEGER");
     if (cmd_list.size() > 3) throw BasicError("WRONG GOTO STATEMENT");
@@ -177,6 +199,7 @@ IFstatement *parseIF(QStringList &cmd_list) {
     if (cmd_list.at(index_exp2) != "THEN") throw BasicError("INVALID IF STATEMENT");
     bool isNum;
     index_exp2++;
+    if (index_exp2 >= cmd_list.size()) throw BasicError("INVALID IF STATEMENT");
     ln = cmd_list.at(index_exp2).toInt(&isNum);
     if (!isNum) throw BasicError("LINE NUMBER MUST BE AN INTEGER");
     if (index_exp2 < (cmd_list.size() - 1)) throw BasicError("INVALID IF STATEMENT");

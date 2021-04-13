@@ -68,7 +68,6 @@ private:
 class PRINTstatement : public statement
 {
     Q_OBJECT
-
 public:
     PRINTstatement(expression * init_exp);
     virtual ~PRINTstatement();

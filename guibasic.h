@@ -28,6 +28,7 @@ public:
 signals:
     void stop_prog_input();
     void input_num(int num);
+    void quit_app();
 
 private slots:
     void on_btnLoadCode_clicked();
@@ -54,6 +55,7 @@ private:
     bool isHaveLineNumber(QStringList &cmd_list);//判断是否存在行号
 
     bool lineNuminRange(int lineNum);
+
 
 };
 #endif // GUIBASIC_H

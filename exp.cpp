@@ -60,6 +60,9 @@ int compoundexp::eval(EvalState &state) {
         if (rcr == 0) throw BasicError("DIVIDE BY ZERO");
         result = lcr / rcr;
     }
+    else if (op == "**"){
+        result = pow(lcr, rcr);
+    }
     else throw BasicError("UNSUPPORTED OPERATOR");
     return result;
 }

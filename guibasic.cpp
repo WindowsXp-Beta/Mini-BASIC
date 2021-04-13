@@ -110,6 +110,10 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         get_help();
         ui -> cmdLineEdit -> clear();
     }
+    else if (cmd_list.at(0) == "QUIT") {
+        emit quit_app();
+        ui -> cmdLineEdit -> clear();
+    }
     else if (cmd_list.at(0) == '?') { //处理INPUT的情况
         bool isNum = false;
         int var = cmd_list.at(1).toInt(&isNum);
@@ -151,7 +155,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         if (stmt) {
             switch (stmt -> type) {
             case LET:{
-                syn_tree_display("LET");
+                syn_tree_display("LET =");
                 break;
             }
             case PRINT:{
@@ -200,7 +204,18 @@ void GuiBasic::insertSpace(QString &command, int beginIndex)
 {
     for (int i = beginIndex; i < command.size(); i++) {
         if (isOp(command[i])) {
-            if (i && command[i - 1] != ' ') command.insert(i, ' ');
+            if (i == 0) continue;//忽略行首的符号
+            if (i && command[i - 1] != ' ') {
+                command.insert(i, ' ');
+                i++;
+            }
+            if (command[i] == '*' && command[i + 1] == '*'){
+                if (command[i + 2] != ' '){
+                    command.insert(i + 2, ' ');
+                    i+=2;
+                    continue;
+                }
+            }
             if (command[i + 1] != ' ') {
                 command.insert(i + 1, ' ');
                 i++;
