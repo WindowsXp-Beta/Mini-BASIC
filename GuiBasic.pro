@@ -15,7 +15,8 @@ SOURCES += \
     guibasic.cpp \
     parser.cpp \
     program.cpp \
-    statement.cpp
+    statement.cpp \
+    tokenscanner.cpp
 
 HEADERS += \
     error.h \
@@ -24,7 +25,8 @@ HEADERS += \
     guibasic.h \
     parser.h \
     program.h \
-    statement.h
+    statement.h \
+    tokenscanner.h
 
 FORMS += \
     guibasic.ui

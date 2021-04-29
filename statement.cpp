@@ -25,6 +25,7 @@ void LETstatement::execute(EvalState &state){
     int res = exp->eval(state);
     state.setValue(var, res);
 }
+
 void LETstatement::display_tree() {
     QString space = "    ";
     QString tree_var = space + var;
@@ -228,7 +229,6 @@ void IFstatement::execute(EvalState & state)
     else if (op == '=') {
         res = val_exp1 == val_exp2;
     }
-    else throw BasicError("UNSUPPORTED OPERATOR");
     if (res) {
         state.setPC(line_number);
     }

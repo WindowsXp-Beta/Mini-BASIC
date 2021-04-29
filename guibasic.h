@@ -47,15 +47,6 @@ private:
     EvalState s;
     Program pro;
 
-    void insertSpace(QString &command, int beginIndex = 0);//在命令中插入空格作为分隔符
-    bool isOp(QChar c);
-
     void LoadFile(const QString &filename);  //按下载入代码按钮加载文件函数
-
-    bool isHaveLineNumber(QStringList &cmd_list);//判断是否存在行号
-
-    bool lineNuminRange(int lineNum);
-
-
 };
 #endif // GUIBASIC_H

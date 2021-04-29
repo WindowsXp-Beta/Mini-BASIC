@@ -6,36 +6,37 @@
 #include <string>
 #include "statement.h"
 #include "error.h"
+#include "tokenscanner.h"
 
 /* overall parse */
-statement *parsedirect(QStringList &cmd_list);
+statement *parsedirect(Tokenscanner & scanner);
 
-statement *parsestatement(QStringList &cmd_list);
+statement *parsestatement(Tokenscanner & scanner);
 /* overall parse end */
 
 
 /* parse instruction */
-LETstatement *parseLET(QStringList &line_list);
+LETstatement *parseLET(Tokenscanner & scanner);
 
-PRINTstatement *parsePRINT(QStringList &line_list);
+PRINTstatement *parsePRINT(Tokenscanner & scanner);
 
-INPUTstatement *parseINPUT(QStringList &line_list);
+INPUTstatement *parseINPUT(Tokenscanner & scanner);
 
-REMstatement *parseREM(QStringList &line_list);
+REMstatement *parseREM(Tokenscanner & scanner);
 
-GOTOstatement *parseGOTO(QStringList &cmd_list);
+GOTOstatement *parseGOTO(Tokenscanner & scanner);
 
-ENDstatement *parseEND();
+ENDstatement *parseEND(Tokenscanner & scanner);
 
-IFstatement *parseIF(QStringList &cmd_list);
+IFstatement *parseIF(Tokenscanner & scanner);
 
 /* parse direction end */
 
 
-expression *parseEXP(QString &line);
+expression *parseEXP(Tokenscanner & scanner);
 
-expression *readE(QStringList &line_list, int &index, int prec = 0);
+expression *readE(Tokenscanner & scanner, int prec = 0);
 
-expression *readT(QStringList &line_list, int &index);
+expression *readT(Tokenscanner & scanner);
 
 #endif // PARSER_H

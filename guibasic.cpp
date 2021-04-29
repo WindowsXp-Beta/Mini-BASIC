@@ -2,6 +2,11 @@
 #include "ui_guibasic.h"
 #include "statement.h"
 #include "parser.h"
+#include "tokenscanner.h"
+
+
+bool lineNuminRange(int lineNum);
+bool isNum(QString s);
 
 GuiBasic* GuiBasic::ui_handle = nullptr;
 
@@ -12,6 +17,7 @@ GuiBasic::GuiBasic(QWidget *parent)
     ui->setupUi(this);
     ui_handle = this;
 }
+
 void GuiBasic::get_help()
 {
     ui -> codebrowser -> clear();
@@ -47,15 +53,14 @@ void GuiBasic::LoadFile(const QString &filename)
     QTextStream in(&file);
     QString code_line;
     while ( !(code_line = in.readLine()).isNull() ) {
-        insertSpace(code_line);
-        QStringList cmd_list = code_line.split(' ', Qt::SkipEmptyParts);
-        int line_num = cmd_list.at(0).toInt();
+        Tokenscanner scanner(code_line);
+        int line_num = scanner.nextToken().toInt();
 
         statement *stmt = nullptr;
         if (!lineNuminRange(line_num)) error_display("LINE NUMBER MUST BE LARGER THAN 0 AND SMALLER THAN 1000000");
         else {
             try {
-                stmt = parsestatement(cmd_list);
+                stmt = parsestatement(scanner);
             }  catch (BasicError err) {
                 error_display(err.get_err_meg());
             }
@@ -91,41 +96,42 @@ void GuiBasic::on_btnRunCode_clicked()
 void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
 {
     QString command = ui -> cmdLineEdit -> text();
-    insertSpace(command);
-    QStringList cmd_list = command.split(' ', Qt::SkipEmptyParts);
+    Tokenscanner scanner(command);
+    if (!scanner.hasMoreTokens()) return; //empty line
 
-    if (cmd_list.at(0) == "RUN") {
+    QString dirCmd = scanner.nextToken();
+
+    if (dirCmd == "RUN") {
         on_btnRunCode_clicked();
         ui -> cmdLineEdit -> clear();
     }
-    else if (cmd_list.at(0) == "LOAD") {
+    else if (dirCmd == "LOAD") {
         on_btnLoadCode_clicked();
         ui -> cmdLineEdit -> clear();
     }
-    else if (cmd_list.at(0) == "CLEAR") {
+    else if (dirCmd == "CLEAR") {
         on_btnClearCode_clicked();
         ui -> cmdLineEdit -> clear();
     }
-    else if (cmd_list.at(0) == "HELP") {
+    else if (dirCmd == "HELP") {
         get_help();
         ui -> cmdLineEdit -> clear();
     }
-    else if (cmd_list.at(0) == "QUIT") {
+    else if (dirCmd == "QUIT") {
         emit quit_app();
         ui -> cmdLineEdit -> clear();
     }
-    else if (cmd_list.at(0) == '?') { //处理INPUT的情况
+    else if (dirCmd == '?') { //处理INPUT的情况
         bool isNum = false;
-        int var = cmd_list.at(1).toInt(&isNum);
+        int var = scanner.nextToken().toInt(&isNum);
         if (!isNum) error_display("YOU CAN ONLY INPUT INTEGER");
         emit input_num(var);
         ui -> cmdLineEdit -> clear();
     }
 
-    else if (isHaveLineNumber(cmd_list)) { // 如果有行号，则执行插入操作
-        QString number = cmd_list.at(0);
-        int line_number = number.toInt();
-        if (cmd_list.size() == 1) { //仅含有行号，删除该行
+    else if (isNum(dirCmd)) { // 如果有行号，则执行插入操作
+        int line_number = dirCmd.toInt();
+        if (!scanner.hasMoreTokens()) { //仅含有行号，删除该行
             pro.removeSourceLine(line_number);
         }
         else {
@@ -134,7 +140,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
                 error_display("LINE NUMBER MUST BE LARGER THAN 0 AND SMALLER THAN 1000000");
             else {
                 try {
-                    stmt = parsestatement(cmd_list);
+                    stmt = parsestatement(scanner);
                 }  catch (BasicError err) {
                     error_display(err.get_err_meg());
                 }
@@ -147,28 +153,29 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
     }
     else { //如果没有行号
         statement *stmt = nullptr;
+        scanner.saveToken();
         try {
-            stmt = parsedirect(cmd_list);
+            stmt = parsedirect(scanner);
         }  catch (BasicError err) {
             error_display(err.get_err_meg());
         }
         if (stmt) {
             switch (stmt -> type) {
-            case LET:{
-                syn_tree_display("LET =");
-                break;
-            }
-            case PRINT:{
-                syn_tree_display("PRINT");
-                break;
-            }
-            case INPUT:{
-                syn_tree_display("INPUT");
-                break;
-            }
+                case LET:{
+                    syn_tree_display("LET =");
+                    break;
+                }
+                case PRINT:{
+                    syn_tree_display("PRINT");
+                    break;
+                }
+                case INPUT:{
+                    syn_tree_display("INPUT");
+                    break;
+                }
             }
             try {
-                stmt->execute(s);
+                stmt -> execute(s);
             }  catch (BasicError err) {
                 error_display(err.get_err_meg());
             }
@@ -179,49 +186,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         ui -> cmdLineEdit -> clear();
         delete stmt;
     }
-}
-
-bool GuiBasic::isHaveLineNumber(QStringList &cmd_list)
-{
-    QString number = cmd_list.at(0);
-    bool is_num = false;
-    number.toInt(&is_num, 10);
-    return is_num;
-}
-
-bool GuiBasic::lineNuminRange(int lineNum)
-{
-    if (lineNum > 1000000 || lineNum < 0) return false;
-    return true;
-}
-
-bool GuiBasic::isOp(QChar c) {
-    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' )return true;
-    return false;
-}
-
-void GuiBasic::insertSpace(QString &command, int beginIndex)
-{
-    for (int i = beginIndex; i < command.size(); i++) {
-        if (isOp(command[i])) {
-            if (i == 0) continue;//忽略行首的符号
-            if (i && command[i - 1] != ' ') {
-                command.insert(i, ' ');
-                i++;
-            }
-            if (command[i] == '*' && command[i + 1] == '*'){
-                if (command[i + 2] != ' '){
-                    command.insert(i + 2, ' ');
-                    i+=2;
-                    continue;
-                }
-            }
-            if (command[i + 1] != ' ') {
-                command.insert(i + 1, ' ');
-                i++;
-            }
-        }
-    }
+    if (scanner.hasMoreTokens()) error_display("SYNTAX ERROR");
 }
 
 /**提供给其他文件的接口**/
@@ -250,4 +215,18 @@ void GuiBasic::syn_tree_display(QString line) {
 void GuiBasic::error_display(QString err_meg) {
     QString err_meg_dis = "ERROR!!! " + err_meg;
     ui -> codebrowser -> appendPlainText(err_meg_dis);
+}
+
+/**一些判断函数**/
+bool lineNuminRange(int lineNum)
+{
+    if (lineNum > 1000000 || lineNum < 0) return false;
+    return true;
+}
+
+bool isNum(QString s)
+{
+    bool isNum = false;
+    s.toInt(&isNum);
+    return isNum;
 }
