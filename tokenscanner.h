@@ -13,6 +13,5 @@ public:
 private:
     int index;
     QStringList line_list;
-
 };
 #endif // TOKENSCANNER_H

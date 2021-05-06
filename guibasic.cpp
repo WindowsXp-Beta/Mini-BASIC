@@ -14,8 +14,12 @@ GuiBasic::GuiBasic(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::GuiBasic)
 {
-    ui->setupUi(this);
+    ui -> setupUi(this);
     ui_handle = this;
+    ui -> codebrowser -> setReadOnly(true);
+    ui -> syntax_tree -> setReadOnly(true);
+    ui -> codedisplay -> setReadOnly(true);
+    ui -> vardisplay -> setReadOnly(true);
 }
 
 void GuiBasic::get_help()
@@ -93,6 +97,12 @@ void GuiBasic::on_btnRunCode_clicked()
     pro.run(s);
 }
 
+void GuiBasic::on_btnDebugCode_clicked()
+{
+
+}
+
+
 void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
 {
     QString command = ui -> cmdLineEdit -> text();
@@ -122,11 +132,31 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         ui -> cmdLineEdit -> clear();
     }
     else if (dirCmd == '?') { //处理INPUT的情况
-        bool isNum = false;
-        int var = scanner.nextToken().toInt(&isNum);
-        if (!isNum) error_display("YOU CAN ONLY INPUT INTEGER");
-        emit input_num(var);
-        ui -> cmdLineEdit -> clear();
+        QString firstToken = scanner.nextToken();
+        if (isQuote(firstToken)) {
+            try {
+                QStringList result;
+                QString tmp = scanner.nextToken();
+                while(!isQuote(tmp)) {
+                    result.append(tmp);
+                    tmp = scanner.nextToken();
+                }
+                if (tmp != firstToken) throw BasicError("THE STRING SHOULD BE CLOSED IN THE SAME QUOTE");
+                emit input_str(result.join(' '));
+            }  catch (BasicError err) {
+                error_display(err.get_err_meg());
+                emit input_str("");
+            }
+            emit input_num(0);//为了避免INPUT因为输入了个引号就死了
+        }
+        else {
+            bool isNum = false;
+            int var = firstToken.toInt(&isNum);
+            if (!isNum) error_display("YOU SHOULD INPUT AN INTEGER");
+            emit input_num(var);
+            emit input_str("");//为了避免INPUTS因为没有输引号就死了
+            ui -> cmdLineEdit -> clear();
+        }
     }
 
     else if (isNum(dirCmd)) { // 如果有行号，则执行插入操作
@@ -173,6 +203,14 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
                     syn_tree_display("INPUT");
                     break;
                 }
+                case INPUTS:{
+                    syn_tree_display("INPUTS");
+                    break;
+                }
+                case PRINTF:{
+                    syn_tree_display("PRINTS");
+                    break;
+                }
             }
             try {
                 stmt -> execute(s);
@@ -204,6 +242,11 @@ void GuiBasic::set_ques_mark() {
 //提供给program.cpp
 void GuiBasic::show_line(const QString &line) {
     ui -> codedisplay -> appendPlainText(line);
+}
+
+QTextCursor GuiBasic::get_cursor() {
+    QTextCursor cursor(ui -> codedisplay -> document());
+    return cursor;
 }
 
 //提供给语法树显示

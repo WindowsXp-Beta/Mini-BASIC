@@ -23,11 +23,13 @@ public:
     void print(QString &);//for PRINT
     void set_ques_mark();//for INPUT
     void show_line(const QString &);//for program.cpp
+    QTextCursor get_cursor();//return the cursor point to the end of file
     void syn_tree_display(QString line);//for statement's display_tree
     void error_display(QString err_meg);
 signals:
     void stop_prog_input();
     void input_num(int num);
+    void input_str(QString value);
     void quit_app();
 
 private slots:
@@ -36,6 +38,8 @@ private slots:
     void on_btnClearCode_clicked();
 
     void on_btnRunCode_clicked();
+
+    void on_btnDebugCode_clicked();
 
     void get_help();
 

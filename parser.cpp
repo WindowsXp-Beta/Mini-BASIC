@@ -1,5 +1,10 @@
 #include "parser.h"
 
+bool isQuote(QString s) {
+    if (s == '\'' || s == '\"') return true;
+    else return false;
+}
+
 bool is_keyword(QString id)
 {
     //static Lexicon keyword("BasicKeywords.txt");
@@ -17,6 +22,7 @@ bool is_keyword(QString id)
     if (id == "PRINT") return true;
     if (id == "INPUT") return true;
     if (id == "END") return true;
+    if (id == "INPUTS") return true;
     return false;
 }
 
@@ -72,8 +78,28 @@ expression *readE(Tokenscanner & scanner, int prec){
     return exp;
 }
 
+QString parseString(Tokenscanner & scanner) {
+    QString firstQuote = scanner.nextToken();
+    QStringList result;
+    QString tmp = scanner.nextToken();
+    while(!isQuote(tmp)) {
+        result.append(tmp);
+        tmp = scanner.nextToken();
+    }
+    if (tmp != firstQuote) throw BasicError("THE STRING SHOULD BE CLOSED IN THE SAME QUOTE");
+    return result.join(' ');
+}
+
 expression *parseEXP(Tokenscanner & scanner){
-    expression *exp = readE(scanner);
+    expression *exp;
+    if (isQuote(scanner.nextToken())) {
+        scanner.saveToken();
+        exp = new stringexp(parseString(scanner));
+    }
+    else {
+        scanner.saveToken();
+        exp = readE(scanner);
+    }
     return exp;
 }
 
@@ -83,6 +109,8 @@ statement *parsedirect(Tokenscanner &scanner) {
     if (fun == "LET") return parseLET(scanner);
     if (fun == "INPUT") return parseINPUT(scanner);
     if (fun == "PRINT") return parsePRINT(scanner);
+    if (fun == "INPUTS") return parseINPUTS(scanner);
+    if (fun == "PRINTF") return parsePRINTF(scanner);
     throw BasicError("INVALID DIRECTIVE INSTRUCTION");
 }
 
@@ -95,6 +123,8 @@ statement *parsestatement(Tokenscanner &scanner){
     if (fun == "IF") return parseIF(scanner);
     if (fun == "REM") return parseREM(scanner);
     if (fun == "END") return parseEND(scanner);
+    if (fun == "INPUTS") return parseINPUTS(scanner);
+    if (fun == "PRINTF") return parsePRINTF(scanner);
     throw BasicError("INVALID INSTRUCTION");
 }
 
@@ -114,6 +144,14 @@ PRINTstatement *parsePRINT(Tokenscanner & scanner){
     expression *exp = parseEXP(scanner);
     if (scanner.hasMoreTokens()) throw BasicError("WRONG PRINT STATEMENT");
     PRINTstatement *new_print_stat = new PRINTstatement(exp);
+    return new_print_stat;
+}
+
+//(num) PRINTF "... N * {}", "...", "...", "...",
+PRINTFstatement *parsePRINTF(Tokenscanner & scanner){
+    expression *exp = parseEXP(scanner);
+    if (scanner.hasMoreTokens()) throw BasicError("WRONG PRINT STATEMENT");
+    PRINTFstatement *new_print_stat = new PRINTFstatement(exp);
     return new_print_stat;
 }
 
@@ -164,4 +202,12 @@ IFstatement *parseIF(Tokenscanner & scanner) {
     if (scanner.hasMoreTokens()) throw BasicError("WRONG IF STATEMENT");
     IFstatement *new_if_stat = new IFstatement(ln, op, exp1, exp2);
     return new_if_stat;
+}
+
+//(num)INPUTS x
+INPUTSstatement *parseINPUTS(Tokenscanner & scanner) {
+    QString var = scanner.nextToken();
+    if(scanner.hasMoreTokens()) throw BasicError("WRONG INPUTS statement");
+    INPUTSstatement *new_inputs_stat = new INPUTSstatement(var);
+    return new_inputs_stat;
 }

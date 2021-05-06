@@ -8,7 +8,8 @@
 class EvalState //保存程序运行时的状态
 {
 private:
-    QMap<QString, int> symboltable;//保存程序运行时的变量
+    QMap<QString, int> symboltableNum;//保存程序运行时的数值变量
+    QMap<QString, QString> symboltableStr;//保存程序运行时的字符串变量
     int program_counter;//PC
 
 public:
@@ -17,8 +18,11 @@ public:
     EvalState();
     ~EvalState();
     void setValue(QString var, int value);
+    void setValue(QString var, QString value);
     int getValue(QString var);
+    QString getStr(QString var);
     bool isDefined(QString var);
+    bool isDefinedStr(QString var);
     void setPC(int line_number);
     int getPC();
     void clear();

@@ -9,18 +9,33 @@ EvalState::~EvalState() {
 }
 
 void EvalState :: setValue(QString name, int value) {
-    symboltable.insert(name, value);
+    symboltableNum.insert(name, value);
+    symboltableStr.remove(name);
 }
 
+void EvalState::setValue(QString var, QString value) {
+    symboltableStr.insert(var, value);
+    symboltableNum.remove(var);
+}
+
+
 int EvalState::getValue(QString var) {
-   return symboltable.find(var).value();
+    return symboltableNum.find(var).value();
+}
+
+QString EvalState::getStr(QString var)
+{
+    return symboltableStr.find(var).value();
 }
 
 bool EvalState::isDefined(QString var) {
-   if (symboltable.count(var)) {
-        return true;
-   }
+   if (symboltableNum.count(var)) return true;
    else return false;
+}
+
+bool EvalState::isDefinedStr(QString var) {
+    if(symboltableStr.count(var)) return true;
+    else return false;
 }
 
 void EvalState::setPC(int line_number)
@@ -35,6 +50,7 @@ int EvalState::getPC()
 
 void EvalState::clear()
 {
-    symboltable.clear();
+    symboltableNum.clear();
+    symboltableStr.clear();
     program_counter = SEQUENTIAL;
 }

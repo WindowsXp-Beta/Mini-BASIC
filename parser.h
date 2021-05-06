@@ -14,7 +14,7 @@ statement *parsedirect(Tokenscanner & scanner);
 statement *parsestatement(Tokenscanner & scanner);
 /* overall parse end */
 
-
+bool isQuote(QString s);
 /* parse instruction */
 LETstatement *parseLET(Tokenscanner & scanner);
 
@@ -30,8 +30,13 @@ ENDstatement *parseEND(Tokenscanner & scanner);
 
 IFstatement *parseIF(Tokenscanner & scanner);
 
+INPUTSstatement *parseINPUTS(Tokenscanner & scanner);
+
+PRINTFstatement *parsePRINTF(Tokenscanner & scanner);
+
 /* parse direction end */
 
+QString parseString(Tokenscanner & scanner);
 
 expression *parseEXP(Tokenscanner & scanner);
 

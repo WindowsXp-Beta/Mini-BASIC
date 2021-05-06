@@ -2,7 +2,6 @@
 #include "guibasic.h"
 #include <QEventLoop>
 #include <QDebug>
-#include <QQueue>
 
 statement :: statement(){
     /* Empty */
@@ -22,35 +21,16 @@ LETstatement :: ~ LETstatement(){
 
 void LETstatement::execute(EvalState &state){
     display_tree();
-    int res = exp->eval(state);
-    state.setValue(var, res);
+    if (exp -> type == strexp) state.setValue(var, ((stringexp*)exp) -> getValue());
+    else state.setValue(var, exp->eval(state));
 }
+
 
 void LETstatement::display_tree() {
     QString space = "    ";
     QString tree_var = space + var;
     GuiBasic::ui_handle -> syn_tree_display(tree_var);
-    //开始处理表达式
-    expression *cur_exp = exp;
-    int next_len = 1;//表示下一行有几个元素，初始根节点有一个元素
-    QQueue<expression *> exp_queue;
-    exp_queue.enqueue(cur_exp);
-    while (true) {
-        if (next_len == 0) break;
-        int len = next_len;
-        next_len = 0;
-        while (len--) { //处理一行
-            cur_exp = exp_queue.dequeue();
-            if (cur_exp -> isCompound) {
-                next_len += 2;
-                exp_queue.enqueue( ((compoundexp*)cur_exp) -> getLHS() );
-                exp_queue.enqueue( ((compoundexp*)cur_exp) -> getRHS() );
-            }
-            QString tree_exp = space + cur_exp -> tree_id;
-            GuiBasic::ui_handle -> syn_tree_display(tree_exp);
-        }
-        space += "    ";
-    }
+    exp -> display(space);
 }
 /**** LET end ****/
 
@@ -95,31 +75,39 @@ void PRINTstatement::execute(EvalState & state)
 
 void PRINTstatement::display_tree()
 {
-    QString space = "    ";
-    //开始处理表达式
-    expression *cur_exp = exp;
-    int next_len = 1;//表示下一行有几个元素，初始根节点有一个元素
-    QQueue<expression *> exp_queue;
-    exp_queue.enqueue(cur_exp);
-    while (true) {
-        if (next_len == 0) break;
-        int len = next_len;
-        next_len = 0;
-        while (len--) { //处理一行
-            cur_exp = exp_queue.dequeue();
-            if (cur_exp -> isCompound) {
-                next_len += 2;
-                exp_queue.enqueue( ((compoundexp*)cur_exp) -> getLHS());
-                exp_queue.enqueue( ((compoundexp*)cur_exp) -> getRHS());
-            }
-            QString tree_exp = space + cur_exp -> tree_id;
-            GuiBasic::ui_handle -> syn_tree_display(tree_exp);
-        }
-        space += "    ";
-    }
+    exp -> display("    ");
 }
 /**** PRINT end ****/
 
+/**** PRINTF begin ****/
+PRINTFstatement::PRINTFstatement(expression * init_exp):exp(init_exp) {
+    type = PRINTF;
+}
+
+PRINTFstatement::~PRINTFstatement()
+{
+    delete exp;
+}
+
+void PRINTFstatement::execute(EvalState & state)
+{
+    display_tree();
+    QString res;
+    if (exp -> type == identexp) {
+        QString var = ((identifierexp*)exp) -> getName();
+        if (state.isDefinedStr(var)) res = state.getStr(var);
+        else if (state.isDefined(var)) res = state.getValue(var);
+        else throw BasicError("VARIABLE NOT DEFINED");
+    }
+    else if (exp -> type == strexp) res = ((stringexp*)exp) -> getValue();
+    GuiBasic::ui_handle -> print(res);
+}
+
+void PRINTFstatement::display_tree()
+{
+    exp -> display("    ");
+}
+/**** PRINT end ****/
 
 /**** END begin ****/
 ENDstatement::ENDstatement() {
@@ -237,43 +225,50 @@ void IFstatement::execute(EvalState & state)
 void IFstatement::display_tree()
 {
     QString space = "    ";
-    expression * cur_exp = exp1;
-    QQueue<expression *> exp_queue;
-    int next_len = 0;
-    if (exp1 -> isCompound) {
-        next_len += 2;
-        exp_queue.enqueue( ((compoundexp*)cur_exp) -> getLHS());
-        exp_queue.enqueue( ((compoundexp*)cur_exp) -> getRHS());
-    }
-    QString tree_exp = space + cur_exp -> tree_id;
-    GuiBasic::ui_handle -> syn_tree_display(tree_exp);
-    QString tree_op = space + op;
-    GuiBasic::ui_handle -> syn_tree_display(tree_op);
-    cur_exp = exp2;
-    if (exp2 -> isCompound) {
-        next_len += 2;
-        exp_queue.enqueue( ((compoundexp*)cur_exp) -> getLHS());
-        exp_queue.enqueue( ((compoundexp*)cur_exp) -> getRHS());
-    }
-    tree_exp = space + cur_exp -> tree_id;
-    GuiBasic::ui_handle -> syn_tree_display(tree_exp);
-    QString exp_line_num = space + QString::number(line_number);
-    GuiBasic::ui_handle -> syn_tree_display(exp_line_num);
-    while (true) {
-        space += "    ";
-        if (next_len == 0) break;
-        int len = next_len;
-        next_len = 0;
-        while (len--) {
-            cur_exp = exp_queue.dequeue();
-            if (cur_exp -> isCompound) {
-                next_len += 2;
-                exp_queue.enqueue( ((compoundexp*)cur_exp) -> getLHS());
-                exp_queue.enqueue( ((compoundexp*)cur_exp) -> getRHS());
-            }
-            tree_exp = space + cur_exp -> tree_id;
-            GuiBasic::ui_handle -> syn_tree_display(tree_exp);
-        }
-    }
+    exp1 -> display(space);
+    GuiBasic::ui_handle -> syn_tree_display(space + op);
+    exp2 -> display(space);
+    GuiBasic::ui_handle -> syn_tree_display(space + QString::number(line_number));
 }
 /**** IF end ****/
+
+/**** INPUTS begin ****/
+INPUTSstatement::INPUTSstatement(QString varTmp, QString value):var(varTmp),value(value)
+{
+    type = INPUTS;
+}
+
+INPUTSstatement::~INPUTSstatement()
+{
+    /* Empty */
+}
+
+void INPUTSstatement::execute(EvalState &state)
+{
+    display_tree();
+    connect(GuiBasic::ui_handle, SIGNAL(input_str(QString)), this, SLOT(get_input(QString)));
+    connect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));
+    GuiBasic::ui_handle -> set_ques_mark();
+    state.setValue(var, value);
+    disconnect(GuiBasic::ui_handle, SIGNAL(input_str(QString)), this, SLOT(get_input(QString)));
+    disconnect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));
+}
+
+void INPUTSstatement::display_tree()
+{
+    QString syn_var = "    " + var;
+    GuiBasic::ui_handle -> syn_tree_display(syn_var);
+}
+
+void INPUTSstatement::begin_loop()
+{
+    QEventLoop loop;
+    connect(GuiBasic::ui_handle, SIGNAL(input_str(QString)), &loop, SLOT(quit()));
+    loop.exec();
+}
+
+void INPUTSstatement::get_input(QString var)
+{
+    value = var;
+}
+/**** INPUTS end ****/

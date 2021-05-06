@@ -12,6 +12,10 @@ void ProgramLine::show()
     GuiBasic::ui_handle -> show_line(line);
 }
 
+bool ProgramLine::isError() {
+    return stmt == nullptr;
+}
+
 void ProgramLine::execute(EvalState &state, const int line)
 {
     if (stmt) {
@@ -111,8 +115,20 @@ void Program::run(EvalState &state)
 void Program::list()
 {
     QMap<int, ProgramLine>::iterator p;
+    QTextCursor cursor = GuiBasic::ui_handle -> get_cursor();
     for (p = code.begin(); p != code.end(); p++) {
         p.value().show();
+        cursor.movePosition(QTextCursor::End);
+        cursor.movePosition(QTextCursor::StartOfLine);
+        cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
+        QTextBlockFormat format;
+        format.setProperty(QTextFormat::FullWidthSelection, true);
+        QColor color(0,0,0,0);
+        if (p.value().isError()) {
+            color.setRgb(255, 100, 100);
+            color.setAlpha(255);
+        }
+        format.setBackground(color);
+        cursor.setBlockFormat(format);
     }
 }
-

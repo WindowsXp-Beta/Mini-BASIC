@@ -1,23 +1,28 @@
 #include "exp.h"
+#include "guibasic.h"
 
-expression::expression(QString tree_id):tree_id(tree_id) {
-
+expression::expression(){
+    /* Empty */
 }
 
 expression::~expression() {
    /* Empty */
 }
 
-constantexp::constantexp(int val) : expression(QString::number(val)), value(val) {
-    isCompound = false;
+constantexp::constantexp(int val) : value(val) {
+    type = constexp;
 }
 
 int constantexp::eval(EvalState & state) {
     return value;
 }
 
-identifierexp::identifierexp(QString id) : expression(id), name(id) {
-    isCompound = false;
+void constantexp::display(QString space) {
+    GuiBasic::ui_handle -> syn_tree_display(space + QString::number(value));
+}
+
+identifierexp::identifierexp(QString id) : name(id) {
+    type = identexp;
 }
 
 int identifierexp::eval(EvalState & state) {
@@ -25,26 +30,26 @@ int identifierexp::eval(EvalState & state) {
     return state.getValue(name);
 }
 
-compoundexp::compoundexp(QString _op, expression * _lhs, expression * _rhs) : expression(_op), op(_op), lhs(_lhs), rhs(_rhs) {
-    isCompound = true;
+void identifierexp::display(QString space) {
+    GuiBasic::ui_handle -> syn_tree_display(space + name);
+}
+QString identifierexp::getName() {
+    return name;
+}
+
+compoundexp::compoundexp(QString _op, expression * _lhs, expression * _rhs) : op(_op), lhs(_lhs), rhs(_rhs) {
+    type = comexp;
 }
 
 compoundexp:: ~ compoundexp(){
     delete lhs;
     delete rhs;
 }
-expression* compoundexp::getLHS()
-{
-    return lhs;
-}
-expression* compoundexp::getRHS()
-{
-    return rhs;
-}
+
 
 int compoundexp::eval(EvalState &state) {
+    if (lhs -> type == strexp || rhs -> type == strexp) throw BasicError("String cannot be evaluated");
     int lcr = lhs->eval(state);
-    if (!rhs) throw BasicError("THE COMPOUND EXPRESSION IS WRONG");
     int rcr = rhs->eval(state);
     int result = 0;
     if (op == '+'){
@@ -65,4 +70,26 @@ int compoundexp::eval(EvalState &state) {
     }
     else throw BasicError("UNSUPPORTED OPERATOR");
     return result;
+}
+
+void compoundexp::display(QString space) {
+    GuiBasic::ui_handle -> syn_tree_display(space + op);
+    lhs -> display(space + "    ");
+    rhs -> display(space + "    ");
+}
+
+stringexp::stringexp(QString value):value(value) {
+    type = strexp;
+}
+
+int stringexp::eval(EvalState & state) {
+    return 0;
+}
+
+void stringexp::display(QString space) {
+    GuiBasic::ui_handle -> syn_tree_display(space + "\"" + value + "\"");
+}
+
+QString stringexp::getValue() {
+    return value;
 }

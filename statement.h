@@ -5,7 +5,7 @@
 #include <QObject>
 #include "exp.h"
 
-enum stateType { LET, REM, INPUT, PRINT, END, GOTO, IF};
+enum stateType { LET, REM, INPUT, PRINT, END, GOTO, IF, PRINTF, INPUTS};
 
 class statement : public QObject
 //因为statement要使用slot signal机制，所以需继承QObject
@@ -78,6 +78,19 @@ private:
         expression * exp;
 };
 
+class PRINTFstatement : public statement
+{
+    Q_OBJECT
+public:
+    PRINTFstatement(expression * init_exp);
+    virtual ~PRINTFstatement();
+    virtual void execute(EvalState & state);
+    virtual void display_tree();
+private:
+    // PRINT exp
+        expression * exp;
+};
+
 class ENDstatement : public statement
 {
     Q_OBJECT
@@ -104,17 +117,35 @@ private:
 
 class IFstatement : public statement
 {
-    public:
+    Q_OBJECT
+public:
     IFstatement(int ln, QString op, expression *exp1, expression *exp2);
     virtual ~IFstatement();
     virtual void execute(EvalState & state);
     virtual void display_tree();
-    private:
+private:
     //IF exp1 op exp2 THEN n
-        int line_number;
-        QString op;
-        expression * exp1;
-        expression * exp2;
+    int line_number;
+    QString op;
+    expression * exp1;
+    expression * exp2;
 };
 
+class INPUTSstatement : public statement
+{
+    Q_OBJECT
+public:
+    INPUTSstatement(QString varTmp, QString value = "");
+    virtual ~INPUTSstatement();
+    virtual void execute(EvalState & state);
+    virtual void display_tree();
+
+public slots:
+    void begin_loop();//解决了QeventLoop的exec不是slot的问题，将exec包装
+    void get_input(QString var);//设置INPUTS的value
+private:
+    QString var;
+    QString value;
+
+};
 #endif // STATEMENT_H

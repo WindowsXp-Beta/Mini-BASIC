@@ -1,7 +1,7 @@
 #include "tokenscanner.h"
 
 bool isOp(QChar c) {
-    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' )return true;
+    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' || c == '\'' || c == '\"')return true;
     return false;
 }
 
@@ -14,13 +14,13 @@ Tokenscanner::Tokenscanner(QString aline) {
                 i++;
             }
             if (aline[i] == '*' && aline[i + 1] == '*'){
-                if (aline[i + 2] != ' '){
+                if (i+2 <aline.size() && aline[i + 2] != ' '){
                     aline.insert(i + 2, ' ');
                     i+=2;
                     continue;
                 }
             }
-            if (aline[i + 1] != ' ') {
+            if (i+1 < aline.size() && aline[i + 1] != ' ') {
                 aline.insert(i + 1, ' ');
                 i++;
             }

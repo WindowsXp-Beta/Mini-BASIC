@@ -11,6 +11,8 @@
 
 - [ ] 使用QString的格式化函数arg，而不是一些加法之类的东西。 
 - [ ] 无法解析 `- variable_name` 这样的格式。
+- [ ] INPUT仅仅打印错误，实际上还是会给变量赋值。比如num会赋0，string会赋空。这样之后其他命令还可以调用这个变量。
+- [ ] 写一个utilty头文件存所有的判断函数。
 - [x] <del>用一个token类来进行QString的读写，而不是在每个命令中遍历数组</del>。改啦
 
 ## 题目解读
@@ -143,3 +145,6 @@ Golden Rules
 
    > In Qt creator, run qmake by `right click` the project then select `run qmake`
 
+## v2.0
+
+### 字符串变量处理
