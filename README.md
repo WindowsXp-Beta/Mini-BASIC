@@ -88,7 +88,7 @@ expression
 
 statement
 1. INPUT输入非整数。
-2. GOTO 到了一个不存在的行。或者GOTO到一个非整数。
+2. GOTO 到了一个不存在的行。或者GOTO到一个非整数。采取的错误处理是报错并继续并终止程序执行。
 ## Qt philosophy
 
 ### 信号-槽机制
@@ -149,3 +149,13 @@ Golden Rules
 ## v2.0
 
 ### 字符串变量处理
+
+### 单步调试逻辑
+
+program的debug成员函数，接受Guibasic的debug按钮发出的信号而启动，信号带一个EvalState参数和一个int参数（debug函数的静态变量frequency），表示是第几次发这个信号，debug<del>有两个**静态**成员变量cursor和指向运行到程序哪一行的iteator（静态成员变量使得多次启动debug函数用的都是同一个cursor和iteator）</del>（不采用这种方式，因为run函数中还要使用这两个东西，所以干脆就把这两个变量变成类的私有变量了）。第一次收到这个信号，为cursor和iteator赋初值，并将首行染为绿色。之后收到该信号则先将目前这行（cursor没有更新）颜色褪去，执行iteator指向的这行，有错误就报messagebox，再更新cursor（向下移动一行），并将下一行染成绿色。然后更新iteator，如果执行到了最后一行或者END语句，同样报messagebox表示程序执行结束，将cursor置为text首，iteator置为首行，并发信号让Guibasic将frequency重置为0。
+
+染色先读取这行的blockformat判断是否为错误语句，如果错误则保持红色。
+
+program::run的逻辑也要修改因为debug的过程中也可以点击run切要继续执行，因此run判断cursor是否指向text首，如果不是，将这行的绿色去除并从iteator开始执行。
+
+> 其实这里使用信号一个很大的原因就在于第一次按debug和之后按debug效果差别很大，所以使用信号来统计第几次调用这个函数。

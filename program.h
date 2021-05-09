@@ -4,6 +4,7 @@
 #include <QMap>
 #include <QString>
 #include <QTextEdit>
+#include <QObject>
 #include "statement.h"
 #include "evalstate.h"
 
@@ -21,7 +22,8 @@ private:
     QString line;
 };
 
-class Program {
+class Program: public QObject {
+   Q_OBJECT
 public:
    Program();
    ~Program();
@@ -30,8 +32,13 @@ public:
    void removeSourceLine(int lineNumber);//若仅有行号，则删除该行
    void run(EvalState & state);
    void list();
+public slots:
+   void debug(EvalState & state,int frequency);
 private:
    //the map to store the code
    QMap<int, ProgramLine> code;
+   QMap<int, int> linePosition;
+   QTextCursor cursor;
+   QMap<int, ProgramLine>::iterator p;
 };
 #endif // PROGRAM_H

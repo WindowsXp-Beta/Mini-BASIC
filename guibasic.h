@@ -25,11 +25,15 @@ public:
     void show_line(const QString &);//for program.cpp
     QTextCursor get_cursor();//return the cursor point to the end of file
     void syn_tree_display(QString line);//for statement's display_tree
-    void error_display(QString err_meg);
+    void error_display(QString err_meg);//for error display using messagebox
+    void run_finished();//for Program::run and Program::debug to show that the program finished normally
+    void disBan();
+    
 signals:
     void stop_prog_input();
     void input_num(int num);
     void input_str(QString value);
+    void debug_sig(EvalState& state, int frequency);
     void quit_app();
 
 private slots:
@@ -47,9 +51,9 @@ private slots:
 
 private:
     Ui::GuiBasic *ui;
-    QString help_doc;
     EvalState s;
     Program pro;
+    int frequency;
 
     void LoadFile(const QString &filename);  //按下载入代码按钮加载文件函数
 };

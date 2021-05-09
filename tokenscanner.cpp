@@ -30,6 +30,12 @@ Tokenscanner::Tokenscanner(QString aline) {
                 i++;
             }
         }
+        else if (aline[i] == "}") {
+            if (i + 1 < aline.size() && aline[i + 1] != ' ') {
+                aline.insert(i + 1, ' ');
+                i++;
+            }
+        }
     }
     line_list = aline.split(' ', Qt::SkipEmptyParts);
     index = 0;

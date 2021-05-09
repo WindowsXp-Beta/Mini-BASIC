@@ -16,12 +16,17 @@ GuiBasic::GuiBasic(QWidget *parent)
 {
     ui -> setupUi(this);
     ui_handle = this;
+    frequency = 1;
+    connect(this, SIGNAL(debug_sig(EvalState&,int)), &pro, SLOT(debug(EvalState&,int)));
     ui -> codebrowser -> setReadOnly(true);
     ui -> syntax_tree -> setReadOnly(true);
     ui -> codedisplay -> setReadOnly(true);
     ui -> vardisplay -> setReadOnly(true);
 }
-
+GuiBasic::~GuiBasic(){
+    disconnect(this, SIGNAL(debug_sig(EvalState&,int)), &pro, SLOT(debug(EvalState&,int)));
+    delete ui;
+}
 void GuiBasic::get_help()
 {
     ui -> codebrowser -> clear();
@@ -38,12 +43,6 @@ void GuiBasic::get_help()
     ui -> codebrowser -> appendPlainText("- PRINT exp:print the value of expression");
     ui -> codebrowser -> appendPlainText("- END:marks the end of your program");
 }
-
-GuiBasic::~GuiBasic()
-{
-    delete ui;
-}
-
 void GuiBasic::LoadFile(const QString &filename)
 {
     QFile file(filename);
@@ -94,12 +93,22 @@ void GuiBasic::on_btnClearCode_clicked()
 
 void GuiBasic::on_btnRunCode_clicked()
 {
-    pro.run(s);
+    ui -> codebrowser -> clear();
+    ui -> syntax_tree -> clear();
+    s.clear();
+    try {
+        pro.run(s);//这里只会catch GOTO非法行的错误，其余错误只会报错不会终止程序运行
+    }
+    catch(BasicError err) {
+        error_display(err.get_err_meg());
+    }
 }
 
 void GuiBasic::on_btnDebugCode_clicked()
 {
-
+    ui -> btnClearCode -> setEnabled(false);
+    ui -> btnLoadCode -> setEnabled(false);
+    emit debug_sig(s,frequency++);
 }
 
 
@@ -155,8 +164,8 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
             if (!isNum) error_display("YOU SHOULD INPUT AN INTEGER");
             emit input_num(var);
             emit input_str("");//为了避免INPUTS因为没有输引号就死了
-            ui -> cmdLineEdit -> clear();
         }
+        ui -> cmdLineEdit -> clear();
     }
 
     else if (isNum(dirCmd)) { // 如果有行号，则执行插入操作
@@ -255,10 +264,27 @@ void GuiBasic::syn_tree_display(QString line) {
 
 //错误信息打印
 void GuiBasic::error_display(QString err_meg) {
-    QString err_meg_dis = "ERROR!!! " + err_meg;
-    ui -> codebrowser -> appendPlainText(err_meg_dis);
+    QMessageBox msgBox;
+    msgBox.setText(err_meg);
+    msgBox.setIcon(QMessageBox::Critical);
+    msgBox.exec();
 }
 
+void GuiBasic::run_finished() {
+    ui -> btnClearCode -> setEnabled(true);
+    ui -> btnLoadCode -> setEnabled(true);
+    frequency = 1;
+    QMessageBox msgBox;
+    msgBox.setText("Program finished with exit code 0");
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.exec();
+}
+
+void GuiBasic::disBan() {
+    ui -> btnClearCode -> setEnabled(true);
+    ui -> btnLoadCode -> setEnabled(true);
+    frequency = 1;
+}
 /**一些判断函数**/
 bool lineNuminRange(int lineNum)
 {
