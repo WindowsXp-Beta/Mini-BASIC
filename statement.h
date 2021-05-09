@@ -3,6 +3,8 @@
 
 #include <QString>
 #include <QObject>
+#include <QQueue>
+#include <QStringList>
 #include "exp.h"
 
 enum stateType { LET, REM, INPUT, PRINT, END, GOTO, IF, PRINTF, INPUTS};
@@ -82,13 +84,15 @@ class PRINTFstatement : public statement
 {
     Q_OBJECT
 public:
-    PRINTFstatement(expression * init_exp);
+    PRINTFstatement(QStringList *init_str_list, QQueue<int> *init_mark, QQueue<expression*> *init_exp_queue);
     virtual ~PRINTFstatement();
     virtual void execute(EvalState & state);
     virtual void display_tree();
 private:
-    // PRINT exp
-        expression * exp;
+    // PRINTF "{}...", var,"str"
+        QStringList *result;
+        QQueue<int> *mark;
+        QQueue<expression*> *expQueue;
 };
 
 class ENDstatement : public statement

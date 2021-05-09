@@ -208,7 +208,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
                     break;
                 }
                 case PRINTF:{
-                    syn_tree_display("PRINTS");
+                    syn_tree_display("PRINTF");
                     break;
                 }
             }
@@ -224,7 +224,6 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         ui -> cmdLineEdit -> clear();
         delete stmt;
     }
-    if (scanner.hasMoreTokens()) error_display("SYNTAX ERROR");
 }
 
 /**提供给其他文件的接口**/

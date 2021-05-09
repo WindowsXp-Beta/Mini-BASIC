@@ -80,33 +80,45 @@ void PRINTstatement::display_tree()
 /**** PRINT end ****/
 
 /**** PRINTF begin ****/
-PRINTFstatement::PRINTFstatement(expression * init_exp):exp(init_exp) {
+PRINTFstatement::PRINTFstatement(QStringList *init_str_list, QQueue<int> *init_mark, QQueue<expression*> *init_exp_queue):result(init_str_list), mark(init_mark), expQueue(init_exp_queue) {
     type = PRINTF;
 }
 
 PRINTFstatement::~PRINTFstatement()
 {
-    delete exp;
+    delete result;
+    delete mark;
+    while(!expQueue -> isEmpty()) delete expQueue -> dequeue();
+    delete expQueue;
 }
 
 void PRINTFstatement::execute(EvalState & state)
 {
     display_tree();
-    QString res;
-    if (exp -> type == identexp) {
-        QString var = ((identifierexp*)exp) -> getName();
-        if (state.isDefinedStr(var)) res = state.getStr(var);
-        else if (state.isDefined(var)) res = state.getValue(var);
-        else throw BasicError("VARIABLE NOT DEFINED");
+    while (!mark -> isEmpty()) {
+        int index = mark -> dequeue();
+        expression* exp = expQueue -> dequeue();
+        QString res;
+        if (exp -> type == identexp) {
+            QString var = ((identifierexp*)exp) -> getName();
+            if (state.isDefinedStr(var)) res = state.getStr(var);
+            else if (state.isDefined(var)) res = QString::number(state.getValue(var));
+            else throw BasicError("VARIABLE NOT DEFINED");
+        }
+        else if (exp -> type == strexp) res = ((stringexp*)exp) -> getValue();
+        else res = QString::number(exp -> eval(state));//constexp and compoundexp
+        result -> replace(index, res);
     }
-    else if (exp -> type == strexp) res = ((stringexp*)exp) -> getValue();
-    GuiBasic::ui_handle -> print(res);
+    QString resultStr = result -> join(' ');
+    GuiBasic::ui_handle -> print(resultStr);
 }
 
 void PRINTFstatement::display_tree()
 {
-    exp -> display("    ");
+    QString templeteStr = result -> join(' ');
+    GuiBasic::ui_handle -> syn_tree_display("    " + templeteStr);
 }
+
 /**** PRINT end ****/
 
 /**** END begin ****/

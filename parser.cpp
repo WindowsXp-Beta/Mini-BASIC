@@ -132,9 +132,9 @@ statement *parsestatement(Tokenscanner &scanner){
 LETstatement *parseLET(Tokenscanner &scanner){
     QString var_str = scanner.nextToken();
     if (is_keyword(var_str)) throw BasicError("NAME OF VARIABLE CANNOT BE A KEY WORD");
-    if (scanner.nextToken() != "=") throw BasicError("WRONG LET STATEMENT");
+    if (scanner.nextToken() != "=") throw BasicError("INVALID LET STATEMENT");
     expression *exp = parseEXP(scanner);
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG LET STATEMENT");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID LET STATEMENT");
     LETstatement * new_let_stat = new LETstatement(var_str, exp);
     return new_let_stat;
 }
@@ -142,23 +142,42 @@ LETstatement *parseLET(Tokenscanner &scanner){
 //(num) PRINT exp
 PRINTstatement *parsePRINT(Tokenscanner & scanner){
     expression *exp = parseEXP(scanner);
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG PRINT STATEMENT");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID PRINT STATEMENT");
     PRINTstatement *new_print_stat = new PRINTstatement(exp);
     return new_print_stat;
 }
 
 //(num) PRINTF "... N * {}", "...", "...", "...",
 PRINTFstatement *parsePRINTF(Tokenscanner & scanner){
-    expression *exp = parseEXP(scanner);
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG PRINT STATEMENT");
-    PRINTFstatement *new_print_stat = new PRINTFstatement(exp);
-    return new_print_stat;
+    QStringList *result = new QStringList;
+    QQueue<int> *mark = new QQueue<int>;
+    QQueue<expression*> *expQueue = new QQueue<expression*>;
+    /* parse templete string */
+    QString firstQuote = scanner.nextToken();
+    QString tmp = scanner.nextToken();
+    while(!isQuote(tmp)) {
+        result -> append(tmp);
+        if (tmp == "{}") mark -> enqueue(result -> size() - 1);
+        tmp = scanner.nextToken();
+    }
+    if (tmp != firstQuote) throw BasicError("THE STRING SHOULD BE CLOSED IN THE SAME QUOTE");
+    int markSize = mark -> size();
+    expression* newExp;
+    while(markSize && scanner.nextToken() == ",") {
+        newExp = parseEXP(scanner);
+        expQueue -> enqueue(newExp);
+        markSize--;
+    }
+    if (markSize) throw BasicError("YOU SHOULD USE COMMA AS DELIMITER");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID PRINTF STATEMENT");
+    PRINTFstatement* new_printf_stat = new PRINTFstatement(result, mark, expQueue);
+    return new_printf_stat;
 }
 
 //(num) INPUT x
 INPUTstatement *parseINPUT(Tokenscanner & scanner){
     QString var = scanner.nextToken();
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG INPUT STATEMENT");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID INPUT STATEMENT");
     INPUTstatement *new_input_stat = new INPUTstatement(var);
     return new_input_stat;
 }
@@ -176,7 +195,7 @@ GOTOstatement *parseGOTO(Tokenscanner & scanner){
     bool isNum = false;
     int line_num = scanner.nextToken().toInt(&isNum);
     if (!isNum) throw BasicError("LINE NUMBER MUST BE AN INTEGER");
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG GOTO STATEMENT");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID GOTO STATEMENT");
     GOTOstatement *new_goto_stat = new GOTOstatement(line_num);
     return new_goto_stat;
 }
@@ -184,7 +203,7 @@ GOTOstatement *parseGOTO(Tokenscanner & scanner){
 //num END
 ENDstatement *parseEND(Tokenscanner & scanner){
     ENDstatement *new_end_stat = new ENDstatement();
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG END STATEMENT");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID END STATEMENT");
     return new_end_stat;
 }
 
@@ -193,13 +212,13 @@ IFstatement *parseIF(Tokenscanner & scanner) {
     int ln;
     expression *exp1 = parseEXP(scanner);
     QString op = scanner.nextToken();
-    if (op != ">" && op != "<" && op != "=") throw BasicError("WRONG IF STATEMENT");
+    if (op != ">" && op != "<" && op != "=") throw BasicError("INVALID IF STATEMENT");
     expression *exp2 = parseEXP(scanner);
-    if (scanner.nextToken() != "THEN") throw BasicError("WRONG IF STATEMENT");
+    if (scanner.nextToken() != "THEN") throw BasicError("INVALID IF STATEMENT");
     bool isNum;
     ln = scanner.nextToken().toInt(&isNum);
     if (!isNum) throw BasicError("LINE NUMBER MUST BE AN INTEGER");
-    if (scanner.hasMoreTokens()) throw BasicError("WRONG IF STATEMENT");
+    if (scanner.hasMoreTokens()) throw BasicError("INVALID IF STATEMENT");
     IFstatement *new_if_stat = new IFstatement(ln, op, exp1, exp2);
     return new_if_stat;
 }
@@ -207,7 +226,7 @@ IFstatement *parseIF(Tokenscanner & scanner) {
 //(num)INPUTS x
 INPUTSstatement *parseINPUTS(Tokenscanner & scanner) {
     QString var = scanner.nextToken();
-    if(scanner.hasMoreTokens()) throw BasicError("WRONG INPUTS statement");
+    if(scanner.hasMoreTokens()) throw BasicError("INVALID INPUTS statement");
     INPUTSstatement *new_inputs_stat = new INPUTSstatement(var);
     return new_inputs_stat;
 }

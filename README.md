@@ -79,6 +79,7 @@ INPUT逻辑：execute调一个mainwindow的函数 => 这个函数在cmdlineedit�
 4. 行号必须处于 $[0,1000000]$ 间。
 5. IF THEN语句缺少元素。
 6. 语句元素过多。（比如画蛇添足）
+7. PRINTF不以逗号作为分隔符。
 #### execute
 expression
 1. 除0。

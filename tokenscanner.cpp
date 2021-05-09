@@ -1,27 +1,32 @@
 #include "tokenscanner.h"
 
 bool isOp(QChar c) {
-    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' || c == '\'' || c == '\"')return true;
+    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' || c == '\'' || c == '\"' || c == ',') return true;
     return false;
 }
 
 Tokenscanner::Tokenscanner(QString aline) {
     for (int i = 0; i < aline.size(); i++) {
         if (isOp(aline[i])) {
-            if (i == 0) continue;//忽略行首的符号
             if (i && aline[i - 1] != ' ') {
                 aline.insert(i, ' ');
                 i++;
             }
             if (aline[i] == '*' && aline[i + 1] == '*'){
-                if (i+2 <aline.size() && aline[i + 2] != ' '){
+                if (i + 2 < aline.size() && aline[i + 2] != ' '){
                     aline.insert(i + 2, ' ');
                     i+=2;
                     continue;
                 }
             }
-            if (i+1 < aline.size() && aline[i + 1] != ' ') {
+            if (i + 1 < aline.size() && aline[i + 1] != ' ') {
                 aline.insert(i + 1, ' ');
+                i++;
+            }
+        }
+        else if (aline[i] == "{") {
+            if (i && aline[i - 1] != ' ') {
+                aline.insert(i, ' ');
                 i++;
             }
         }
