@@ -17,14 +17,12 @@ GuiBasic::GuiBasic(QWidget *parent)
     ui -> setupUi(this);
     ui_handle = this;
     frequency = 1;
-    connect(this, SIGNAL(debug_sig(EvalState&,int)), &pro, SLOT(debug(EvalState&,int)));
     ui -> codebrowser -> setReadOnly(true);
     ui -> syntax_tree -> setReadOnly(true);
     ui -> codedisplay -> setReadOnly(true);
     ui -> vardisplay -> setReadOnly(true);
 }
 GuiBasic::~GuiBasic(){
-    disconnect(this, SIGNAL(debug_sig(EvalState&,int)), &pro, SLOT(debug(EvalState&,int)));
     delete ui;
 }
 void GuiBasic::get_help()
@@ -84,31 +82,58 @@ void GuiBasic::on_btnLoadCode_clicked()
 
 void GuiBasic::on_btnClearCode_clicked()
 {
-    pro.clear();
     s.clear();
+    pro.clear();
     ui -> codedisplay -> clear();
     ui -> codebrowser -> clear();
     ui -> syntax_tree -> clear();
+    ui -> vardisplay -> clear();
+    frequency = 1;
 }
 
 void GuiBasic::on_btnRunCode_clicked()
 {
-    ui -> codebrowser -> clear();
-    ui -> syntax_tree -> clear();
-    s.clear();
+    if (frequency == 1) {
+        ui -> btnClearCode -> setEnabled(false);
+        ui -> btnLoadCode -> setEnabled(false);
+        ui -> codebrowser -> clear();
+        ui -> syntax_tree -> clear();
+        ui -> vardisplay -> clear();
+        s.clear();
+        pro.init();
+    }
     try {
         pro.run(s);//这里只会catch GOTO非法行的错误，其余错误只会报错不会终止程序运行
     }
     catch(BasicError err) {
+        ui -> btnClearCode -> setEnabled(true);
+        ui -> btnLoadCode -> setEnabled(true);
+        frequency = 1;
         error_display(err.get_err_meg());
     }
 }
 
 void GuiBasic::on_btnDebugCode_clicked()
 {
-    ui -> btnClearCode -> setEnabled(false);
-    ui -> btnLoadCode -> setEnabled(false);
-    emit debug_sig(s,frequency++);
+    if (frequency == 1) {
+        ui -> btnClearCode -> setEnabled(false);
+        ui -> btnLoadCode -> setEnabled(false);
+        ui -> codebrowser -> clear();
+        ui -> syntax_tree -> clear();
+        ui -> vardisplay -> clear();
+        s.clear();
+        pro.init();
+    }
+    frequency++;
+    try {
+        pro.debug(s);
+    }
+    catch(BasicError err) {
+        ui -> btnClearCode -> setEnabled(true);
+        ui -> btnLoadCode -> setEnabled(true);
+        frequency = 1;
+        error_display(err.get_err_meg());
+    }
 }
 
 
@@ -140,34 +165,54 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         emit quit_app();
         ui -> cmdLineEdit -> clear();
     }
-    else if (dirCmd == '?') { //处理INPUT的情况
-        QString firstToken = scanner.nextToken();
-        if (isQuote(firstToken)) {
-            try {
-                QStringList result;
-                QString tmp = scanner.nextToken();
-                while(!isQuote(tmp)) {
-                    result.append(tmp);
-                    tmp = scanner.nextToken();
-                }
-                if (tmp != firstToken) throw BasicError("THE STRING SHOULD BE CLOSED IN THE SAME QUOTE");
-                emit input_str(result.join(' '));
-            }  catch (BasicError err) {
-                error_display(err.get_err_meg());
-                emit input_str("");
-            }
-            emit input_num(0);//为了避免INPUT因为输入了个引号就死了
+    else if (dirCmd == "INT?") { //处理INPUT的情况
+        bool isNum = false;
+        if(!scanner.hasMoreTokens()) {
+            error_display("YOU SHOULD INPUT AN INTEGER");
+            ui -> cmdLineEdit -> setText("INT? ");
+            return;
         }
-        else {
-            bool isNum = false;
-            int var = firstToken.toInt(&isNum);
-            if (!isNum) error_display("YOU SHOULD INPUT AN INTEGER");
-            emit input_num(var);
-            emit input_str("");//为了避免INPUTS因为没有输引号就死了
+        int var = scanner.nextToken().toInt(&isNum);
+        if (!isNum) {
+            error_display("YOU SHOULD INPUT AN INTEGER");
+            ui -> cmdLineEdit -> setText("INT? ");
+            return;
         }
+        emit input_num(var);
+        ui -> btnDebugCode -> setEnabled(true);
+        ui -> btnRunCode -> setEnabled(true);
         ui -> cmdLineEdit -> clear();
     }
-
+    else if (dirCmd == "STR?") {
+        if(!scanner.hasMoreTokens()) {
+            error_display("YOU SHOULD INPUT AN STRING CLOSED BY QUOTES");
+            ui -> cmdLineEdit -> setText("STR? ");
+            return;
+        }
+        QString firstQuote = scanner.nextToken();
+        if (!isQuote(firstQuote)) {
+            error_display("YOU SHOULD INPUT AN STRING CLOSED BY QUOTES");
+            ui -> cmdLineEdit -> setText("STR? ");
+            return;
+        }
+        try {
+            QStringList result;
+            QString tmp = scanner.nextToken();
+            while(!isQuote(tmp)) {
+                result.append(tmp);
+                tmp = scanner.nextToken();
+            }
+            if (tmp != firstQuote) throw BasicError("THE STRING SHOULD BE CLOSED IN THE SAME QUOTE");
+            emit input_str(result.join(' '));
+        }  catch (BasicError err) {
+           error_display(err.get_err_meg());
+           ui -> cmdLineEdit -> setText("STR? ");
+           return;
+        }
+        ui -> btnDebugCode -> setEnabled(true);
+        ui -> btnRunCode -> setEnabled(true);
+        ui -> cmdLineEdit -> clear();
+    }
     else if (isNum(dirCmd)) { // 如果有行号，则执行插入操作
         int line_number = dirCmd.toInt();
         if (!scanner.hasMoreTokens()) { //仅含有行号，删除该行
@@ -230,6 +275,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         else {
             syn_tree_display("ERROR");
         }
+        s.list();
         ui -> cmdLineEdit -> clear();
         delete stmt;
     }
@@ -242,14 +288,30 @@ void GuiBasic::print(QString &content) {
 }
 
 //提供给INPUT
-void GuiBasic::set_ques_mark() {
-    ui -> cmdLineEdit -> setText("? ");
+void GuiBasic::set_ques_mark_int() {
+    ui -> cmdLineEdit -> setText("INT? ");
+    ui -> btnDebugCode -> setEnabled(false);
+    ui -> btnRunCode -> setEnabled(false);
     emit stop_prog_input();
 }
-
+//提供给INPUTS
+void GuiBasic::set_ques_mark_str() {
+    ui -> cmdLineEdit -> setText("STR? ");
+    ui -> btnDebugCode -> setEnabled(false);
+    ui -> btnRunCode -> setEnabled(false);
+    emit stop_prog_input();
+}
 //提供给program.cpp
 void GuiBasic::show_line(const QString &line) {
     ui -> codedisplay -> appendPlainText(line);
+}
+
+//提供给evalstate.cpp
+void GuiBasic::show_var(const QString &var) {
+    ui -> vardisplay -> appendPlainText(var);
+}
+void GuiBasic::clear_var() {
+    ui -> vardisplay -> clear();
 }
 
 QTextCursor GuiBasic::get_cursor() {
@@ -280,11 +342,6 @@ void GuiBasic::run_finished() {
     msgBox.exec();
 }
 
-void GuiBasic::disBan() {
-    ui -> btnClearCode -> setEnabled(true);
-    ui -> btnLoadCode -> setEnabled(true);
-    frequency = 1;
-}
 /**一些判断函数**/
 bool lineNuminRange(int lineNum)
 {

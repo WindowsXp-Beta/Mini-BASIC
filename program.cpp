@@ -74,16 +74,18 @@ Program::Program()
 
 Program::~Program()
 {
+    clear();
+    linePosition.clear();
 }
 
 void Program::clear()
 {
     code.clear();
+    linePosition.clear();
 }
 
 void Program::addSourceLine(int lineNumber, QString line, statement *parsed_line)
 {
-    p = code.begin();
     code[lineNumber] = ProgramLine(parsed_line, line);//若行号重复，直接覆盖
 }
 
@@ -95,9 +97,14 @@ void Program::removeSourceLine(int lineNumber)
     }
 }
 
+void Program::init(){
+    p = code.begin();
+    cursor = GuiBasic::ui_handle -> get_cursor();
+}
+
 void Program::run(EvalState &state)
 {
-    if (code.size() == 0) return;//没有代码时不能运行
+    if (p == code.end()) throw BasicError("THERE ARE NO CODES YET");
     /* 如果cursor不在首行，先褪色*/
     if (cursor.position() > 0) {
         if (!p.value().isError()) {
@@ -114,7 +121,6 @@ void Program::run(EvalState &state)
         }  catch (BasicError err) {
             GuiBasic::ui_handle -> error_display(err.get_err_meg());
         }
-
         int PC = state.getPC();
         if ( PC == EvalState::HALT) {
             break;
@@ -126,20 +132,14 @@ void Program::run(EvalState &state)
             p = code.find(PC);
             if (p == code.end()) throw BasicError("GOTO AN INVALID LINE");
         }
+        state.list();
     }
-    p = code.begin();
-    cursor = GuiBasic::ui_handle -> get_cursor();
     GuiBasic::ui_handle -> run_finished();
 }
 
-void Program::debug(EvalState & state,int frequency) {
-    if(code.size() == 0) {
-        GuiBasic::ui_handle -> disBan();
-        return;
-    }
-    if (frequency == 1) {
-        p = code.begin();
-        cursor = GuiBasic::ui_handle -> get_cursor();
+void Program::debug(EvalState & state) {
+    if (cursor.position() == 0) {//仅在调用init后cursor位于0处
+        if (p == code.end()) throw BasicError("THERE ARE NO CODES YET");
         cursor.movePosition(QTextCursor::EndOfLine, QTextCursor::KeepAnchor);
         if (!p.value().isError()) {
             QTextBlockFormat format;
@@ -149,15 +149,9 @@ void Program::debug(EvalState & state,int frequency) {
             cursor.setBlockFormat(format);
         }
     }
-    else {
-        /* 先褪色 */
-        if (!p.value().isError()) {
-            QTextBlockFormat format = cursor.blockFormat();
-            QColor color(0,0,0,0);
-            format.setBackground(color);
-            cursor.setBlockFormat(format);
-        }
-        /* 再执行一行语句 */
+    else if(p != code.end()) {
+        bool isWrong = p.value().isError();//为判断是否褪色使用
+        /* 先执行一行语句 */
         state.setPC(EvalState::SEQUENTIAL);
         try {
             p.value().execute(state, p.key());
@@ -166,10 +160,7 @@ void Program::debug(EvalState & state,int frequency) {
         }
         int PC = state.getPC();
         if ( PC == EvalState::HALT) {
-            p = code.begin();
-            cursor = GuiBasic::ui_handle -> get_cursor();
-            GuiBasic::ui_handle -> run_finished();
-            return;
+            p = code.end();
         }
         else if (PC == EvalState::SEQUENTIAL) {
             p++;
@@ -178,9 +169,15 @@ void Program::debug(EvalState & state,int frequency) {
             p = code.find(PC);
             if (p == code.end()) throw BasicError("GOTO AN INVALID LINE");
         }
+        state.list();//更新变量显示
+        /* 再褪色 */
+        if (!isWrong) {
+            QTextBlockFormat format = cursor.blockFormat();
+            QColor color(0,0,0,0);
+            format.setBackground(color);
+            cursor.setBlockFormat(format);
+        }
         if (p == code.end()) {
-            cursor = GuiBasic::ui_handle -> get_cursor();
-            p = code.begin();
             GuiBasic::ui_handle -> run_finished();
             return;
         }

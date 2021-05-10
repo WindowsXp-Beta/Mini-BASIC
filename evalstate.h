@@ -26,6 +26,7 @@ public:
     void setPC(int line_number);
     int getPC();
     void clear();
+    void list();
 };
 
 #endif // EVALSTATE_H

@@ -23,6 +23,7 @@ bool is_keyword(QString id)
     if (id == "INPUT") return true;
     if (id == "END") return true;
     if (id == "INPUTS") return true;
+    if (id == "PRINTF") return true;
     return false;
 }
 

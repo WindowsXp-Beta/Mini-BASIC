@@ -173,7 +173,7 @@ void INPUTstatement::execute(EvalState & state)
     display_tree();
     connect(GuiBasic::ui_handle, SIGNAL(input_num(int)), this, SLOT(get_input(int)));
     connect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));
-    GuiBasic::ui_handle -> set_ques_mark();
+    GuiBasic::ui_handle -> set_ques_mark_int();
     state.setValue(var, num);
     disconnect(GuiBasic::ui_handle, SIGNAL(input_num(int)), this, SLOT(get_input(int)));
     disconnect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));
@@ -260,7 +260,7 @@ void INPUTSstatement::execute(EvalState &state)
     display_tree();
     connect(GuiBasic::ui_handle, SIGNAL(input_str(QString)), this, SLOT(get_input(QString)));
     connect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));
-    GuiBasic::ui_handle -> set_ques_mark();
+    GuiBasic::ui_handle -> set_ques_mark_str();
     state.setValue(var, value);
     disconnect(GuiBasic::ui_handle, SIGNAL(input_str(QString)), this, SLOT(get_input(QString)));
     disconnect(GuiBasic::ui_handle, SIGNAL(stop_prog_input()), this, SLOT(begin_loop()));

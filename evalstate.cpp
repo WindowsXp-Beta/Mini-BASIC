@@ -1,4 +1,5 @@
 #include "evalstate.h"
+#include "guibasic.h"
 
 EvalState::EvalState() {
     program_counter = SEQUENTIAL;
@@ -53,4 +54,22 @@ void EvalState::clear()
     symboltableNum.clear();
     symboltableStr.clear();
     program_counter = SEQUENTIAL;
+}
+
+void EvalState::list()
+{
+    GuiBasic::ui_handle -> clear_var();
+    QString varLine;
+    QMap<QString, int>::iterator intP = symboltableNum.begin();
+    while (intP != symboltableNum.end()) {
+        varLine = intP.key() + ": INT = " + QString::number(intP.value());
+        GuiBasic::ui_handle -> show_var(varLine);
+        intP++;
+    }
+    QMap<QString, QString>::iterator strP = symboltableStr.begin();
+    while (strP != symboltableStr.end()) {
+        varLine = strP.key() + ": STR = " + "\"" + strP.value() + "\"";
+        GuiBasic::ui_handle -> show_var(varLine);
+        strP++;
+    }
 }

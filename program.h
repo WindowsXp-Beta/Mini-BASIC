@@ -30,10 +30,10 @@ public:
    void clear();
    void addSourceLine(int lineNumber, QString line, statement * parsed_line);
    void removeSourceLine(int lineNumber);//若仅有行号，则删除该行
+   void init();
    void run(EvalState & state);
    void list();
-public slots:
-   void debug(EvalState & state,int frequency);
+   void debug(EvalState & state);
 private:
    //the map to store the code
    QMap<int, ProgramLine> code;
