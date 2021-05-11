@@ -143,6 +143,7 @@ LETstatement *parseLET(Tokenscanner &scanner){
 //(num) PRINT exp
 PRINTstatement *parsePRINT(Tokenscanner & scanner){
     expression *exp = parseEXP(scanner);
+    if(exp -> type == strexp) throw BasicError("YOU SHOULD USE PRINTF");
     if (scanner.hasMoreTokens()) throw BasicError("INVALID PRINT STATEMENT");
     PRINTstatement *new_print_stat = new PRINTstatement(exp);
     return new_print_stat;

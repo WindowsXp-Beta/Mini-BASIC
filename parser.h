@@ -15,6 +15,7 @@ statement *parsestatement(Tokenscanner & scanner);
 /* overall parse end */
 
 bool isQuote(QString s);
+
 /* parse instruction */
 LETstatement *parseLET(Tokenscanner & scanner);
 

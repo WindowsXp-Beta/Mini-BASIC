@@ -55,18 +55,20 @@ void GuiBasic::LoadFile(const QString &filename)
     QString code_line;
     while ( !(code_line = in.readLine()).isNull() ) {
         Tokenscanner scanner(code_line);
-        int line_num = scanner.nextToken().toInt();
+        bool flag;
+        int line_num = scanner.nextToken().toInt(&flag);
 
         statement *stmt = nullptr;
-        if (!lineNuminRange(line_num)) error_display("LINE NUMBER MUST BE LARGER THAN 0 AND SMALLER THAN 1000000");
+        if (!flag || !lineNuminRange(line_num)) error_display("LINE NUMBER MUST BE LARGER THAN 0 AND SMALLER THAN 1000000");
+        else if(!scanner.hasMoreTokens()) pro.removeSourceLine(line_num);
         else {
             try {
                 stmt = parsestatement(scanner);
             }  catch (BasicError err) {
                 error_display(err.get_err_meg());
             }
-        }
         pro.addSourceLine(line_num, code_line, stmt);
+        }
     }
     pro.list();
 }
@@ -337,7 +339,7 @@ void GuiBasic::run_finished() {
     ui -> btnLoadCode -> setEnabled(true);
     frequency = 1;
     QMessageBox msgBox;
-    msgBox.setText("Program finished with exit code 0");
+    msgBox.setText("Program finished");
     msgBox.setIcon(QMessageBox::Information);
     msgBox.exec();
 }

@@ -18,6 +18,10 @@ Tokenscanner::Tokenscanner(QString aline) {
                     i+=2;
                     continue;
                 }
+                else {
+                    i+=1;
+                    continue;
+                }
             }
             if (i + 1 < aline.size() && aline[i + 1] != ' ') {
                 aline.insert(i + 1, ' ');

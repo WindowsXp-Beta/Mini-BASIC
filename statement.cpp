@@ -22,6 +22,14 @@ LETstatement :: ~ LETstatement(){
 void LETstatement::execute(EvalState &state){
     display_tree();
     if (exp -> type == strexp) state.setValue(var, ((stringexp*)exp) -> getValue());
+    else if (exp -> type == identexp) {
+        QString value_var = ((identifierexp*)exp) -> getName();
+        QString res;
+        if (state.isDefinedStr(value_var)) res = state.getStr(value_var);
+        else if (state.isDefined(value_var)) res = QString::number(state.getValue(value_var));
+        else throw BasicError("VARIABLE NOT DEFINED");
+        state.setValue(var,res);
+    }
     else state.setValue(var, exp->eval(state));
 }
 

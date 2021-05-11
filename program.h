@@ -4,7 +4,6 @@
 #include <QMap>
 #include <QString>
 #include <QTextEdit>
-#include <QObject>
 #include "statement.h"
 #include "evalstate.h"
 
@@ -23,7 +22,6 @@ private:
 };
 
 class Program: public QObject {
-   Q_OBJECT
 public:
    Program();
    ~Program();
