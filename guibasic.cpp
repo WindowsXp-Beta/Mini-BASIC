@@ -56,6 +56,7 @@ void GuiBasic::LoadFile(const QString &filename)
     while ( !(code_line = in.readLine()).isNull() ) {
         Tokenscanner scanner(code_line);
         bool flag;
+        if(!scanner.hasMoreTokens()) continue;
         int line_num = scanner.nextToken().toInt(&flag);
 
         statement *stmt = nullptr;
@@ -168,17 +169,41 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
         ui -> cmdLineEdit -> clear();
     }
     else if (dirCmd == "INT?") { //处理INPUT的情况
-        bool isNum = false;
+        bool isNum = false, isNeg = false;
         if(!scanner.hasMoreTokens()) {
             error_display("YOU SHOULD INPUT AN INTEGER");
             ui -> cmdLineEdit -> setText("INT? ");
             return;
         }
-        int var = scanner.nextToken().toInt(&isNum);
+        QString token = scanner.nextToken();
+        if (token == '+') {
+            isNeg = false;
+            try {
+                token = scanner.nextToken();
+            }  catch (BasicError err) {
+                error_display("YOU SHOULD INPUT AN INTEGER");
+                ui -> cmdLineEdit -> setText("INT? ");
+                return;
+            }
+        }
+        else if (token == '-') {
+            isNeg = true;
+            try {
+                token = scanner.nextToken();
+            }  catch (BasicError err) {
+                error_display("YOU SHOULD INPUT AN INTEGER");
+                ui -> cmdLineEdit -> setText("INT? ");
+                return;
+            }
+        }
+        int var = token.toInt(&isNum);
         if (!isNum) {
             error_display("YOU SHOULD INPUT AN INTEGER");
             ui -> cmdLineEdit -> setText("INT? ");
             return;
+        }
+        if (isNeg) {
+            var = -var;
         }
         emit input_num(var);
         ui -> btnDebugCode -> setEnabled(true);
@@ -205,6 +230,7 @@ void GuiBasic::on_cmdLineEdit_returnPressed()//命令行中输入回车
                 tmp = scanner.nextToken();
             }
             if (tmp != firstQuote) throw BasicError("THE STRING SHOULD BE CLOSED IN THE SAME QUOTE");
+            if (scanner.hasMoreTokens()) throw BasicError("EXTRA INPUT");
             emit input_str(result.join(' '));
         }  catch (BasicError err) {
            error_display(err.get_err_meg());

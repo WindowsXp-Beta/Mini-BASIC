@@ -24,11 +24,17 @@ void LETstatement::execute(EvalState &state){
     if (exp -> type == strexp) state.setValue(var, ((stringexp*)exp) -> getValue());
     else if (exp -> type == identexp) {
         QString value_var = ((identifierexp*)exp) -> getName();
-        QString res;
-        if (state.isDefinedStr(value_var)) res = state.getStr(value_var);
-        else if (state.isDefined(value_var)) res = QString::number(state.getValue(value_var));
+        QString resStr;
+        int res;
+        if (state.isDefinedStr(value_var)) {
+            resStr = state.getStr(value_var);
+            state.setValue(var, resStr);
+        }
+        else if (state.isDefined(value_var)) {
+            res = state.getValue(value_var);
+            state.setValue(var,res);
+        }
         else throw BasicError("VARIABLE NOT DEFINED");
-        state.setValue(var,res);
     }
     else state.setValue(var, exp->eval(state));
 }
@@ -103,9 +109,20 @@ PRINTFstatement::~PRINTFstatement()
 void PRINTFstatement::execute(EvalState & state)
 {
     display_tree();
-    while (!mark -> isEmpty()) {
-        int index = mark -> dequeue();
-        expression* exp = expQueue -> dequeue();
+    QStringList *tmpRes = new QStringList;
+    QQueue<int> *tmpMar = new QQueue<int>;
+    QQueue<expression*> *tmpExp = new QQueue<expression*>;
+
+    QStringList::iterator pResult = result -> begin();
+    QQueue<int>::iterator pMark = mark -> begin();
+    QQueue<expression*>::iterator pExp = expQueue -> begin();
+    while (pResult != result -> end()) {
+        tmpRes -> append(*pResult);
+        pResult++;
+    }
+    while(pMark != mark -> end()) {
+        int index = *pMark;
+        expression* exp = *pExp;
         QString res;
         if (exp -> type == identexp) {
             QString var = ((identifierexp*)exp) -> getName();
@@ -115,10 +132,15 @@ void PRINTFstatement::execute(EvalState & state)
         }
         else if (exp -> type == strexp) res = ((stringexp*)exp) -> getValue();
         else res = QString::number(exp -> eval(state));//constexp and compoundexp
-        result -> replace(index, res);
+        tmpRes -> replace(index, res);
+        pMark++;
+        pExp++;
     }
-    QString resultStr = result -> join(' ');
+    QString resultStr = tmpRes -> join(' ');
     GuiBasic::ui_handle -> print(resultStr);
+    delete tmpRes;
+    delete tmpMar;
+    delete tmpExp;
 }
 
 void PRINTFstatement::display_tree()
