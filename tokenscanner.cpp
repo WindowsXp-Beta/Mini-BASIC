@@ -1,7 +1,9 @@
 #include "tokenscanner.h"
 
 bool isOp(QChar c) {
-    if (c == '(' || c == ')' || c == '=' || c == '+' || c == '-' ||c == '*' || c == '/' || c == '\'' || c == '\"' || c == ',') return true;
+    if (c == '(' || c == ')' || c == '=' || c == '+'
+        || c == '-' ||c == '*' || c == '/' || c == '\''
+        || c == '\"' || c == ',' || c == '>' || c == '<') return true;
     return false;
 }
 
